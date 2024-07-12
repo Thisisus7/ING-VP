@@ -1,0 +1,18 @@
+This is an image of a level of the N-queens game.
+Your task is to generate a list of coordinates to complete the n-queens problem on a board where the 
+first queen is already placed.
+
+Follow these rules:
+Each queen must be placed in such a way that no two queens threaten each other.
+	2. No two queens can share the same row.
+	3. No two queens can share the same column.
+	4. No two queens can share the same diagonal.
+
+Note:
+	1. An N x N chessboard with N queens.
+	2. The position of the first queen is already given, so do not include it in your asnwer.
+	3. Your output should be a list of list: "[[row_1, col_1], [row_2, col_2], ...]".
+
+Example output: "[[0,2], [3,1], [2,3]]"
+
+Your output:

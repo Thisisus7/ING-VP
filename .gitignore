@@ -1,6 +1,7 @@
-prompts/
 outputs/
 Tools/
-src/
+src/__pycache__/
 
-requirements.txt
+
+inference.log
+SimSun.ttf

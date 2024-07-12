@@ -30,13 +30,13 @@ def load_levels(filename='data/sokoban/levels_50.txt'):
     return parsed_levels
 
 # Parse JSONL moves
-def parse_moves(filename='outputs/one_step/sokoban/models/sokoban.jsonl'):
+def parse_moves(filename='outputs/one_step/models/formatted/sokoban.jsonl'):
     with open(filename, 'r') as file:
         moves = [json.loads(line) for line in file]
     return moves
 
 # Save evaluation results
-def save_eval_results(eval_results, filename='outputs/one_step/sokoban/eval/eval.jsonl'):
+def save_eval_results(eval_results, filename='outputs/one_step/eval/sokoban.jsonl'):
     with open(filename, 'w') as file:
         for result in eval_results:
             file.write(json.dumps(result) + '\n')
@@ -103,20 +103,36 @@ def run_game():
     images = load_images()
     eval_results = []
 
-    if not os.path.exists('outputs/one_step/sokoban/eval/results'):
-        os.makedirs('outputs/one_step/sokoban/eval/results')
+    if not os.path.exists('outputs/one_step/eval/sokoban_results'):
+        os.makedirs('outputs/one_step/eval/sokoban_results')
 
     for move in moves:
         level_index = move['level'] - 1
         move_sequence = move['output']
+        model_name = move['model']
         level = [list(row) for row in levels[level_index]]
 
         # Set screen size based on level dimensions
         screen_width = max(len(row) for row in level) * TILE_SIZE
         screen_height = len(level) * TILE_SIZE
         screen = pygame.display.set_mode((screen_width, screen_height))
-        pygame.display.set_caption(f'Sokoban - Level {move["level"]}')
+        pygame.display.set_caption(f'Sokoban - Level {move["level"]} - Model {model_name}')
         clock = pygame.time.Clock()
+
+        # If no move sequence, just save the initial state
+        if not move_sequence:
+            image_path = f'outputs/one_step/eval/sokoban_results/level_{move["level"]}_model_{model_name}.png'
+            draw_level(level, images, screen)
+            pygame.display.flip()
+            pygame.image.save(screen, image_path)
+            eval_results.append({
+                "level": move['level'],
+                "model": model_name,
+                "output": move_sequence,
+                "is_valid": False,  # No moves made, so not valid
+                "image": image_path
+            })
+            continue
 
         for direction in move_sequence:
             move_worker(level, direction)
@@ -125,12 +141,16 @@ def run_game():
             pygame.time.delay(MOVE_DELAY)
 
         # Save final level state
-        pygame.image.save(screen, f'outputs/one_step/sokoban/eval/results/level_{move["level"]}.png')
+        image_path = f'outputs/one_step/eval/sokoban_results/level_{move["level"]}_model_{model_name}.png'
+        pygame.image.save(screen, image_path)
 
         # Example evaluation (you can expand this to be more complex)
         eval_results.append({
             "level": move['level'],
-            "is_valid": all('$' not in row for row in level)  # Level is valid if no boxes ('$') are left
+            "model": model_name,
+            "output": move_sequence,
+            "is_valid": all('$' not in row for row in level),  # Level is valid if no boxes ('$') are left
+            "image": image_path
         })
 
     save_eval_results(eval_results)

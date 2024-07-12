@@ -3,6 +3,7 @@ import pygame
 import sys
 import os
 from typing import List, Tuple
+import ast
 
 # Constants
 SCREEN_SIZE = 800
@@ -39,30 +40,18 @@ def draw_chessboard(screen):
 def draw_queen(screen, row: int, col: int, color: Tuple[int, int, int]):
     pygame.draw.circle(screen, color, (col * CELL_SIZE + CELL_SIZE // 2, row * CELL_SIZE + CELL_SIZE // 2), CELL_SIZE // 3)
 
-# Function to check if a position is safe for a queen
-def is_safe(board: List[List[int]], row: int, col: int, n: int) -> bool:
-    for i in range(col):
-        if board[row][i] == 1:
-            return False
-
-    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
-        if board[i][j] == 1:
-            return False
-
-    for i, j in zip(range(row, n, 1), range(col, -1, -1)):
-        if board[i][j] == 1:
-            return False
-
-    return True
-
 # Function to validate N-Queens solution
-def validate_solution(board_size: int, queens: List[Tuple[int, int]]) -> bool:
-    board = [[0 for _ in range(board_size)] for _ in range(board_size)]
-    for queen in queens:
-        row, col = queen
-        if not is_safe(board, row, col, board_size):
-            return False
-        board[row][col] = 1
+def validate_solution(queens: List[Tuple[int, int]]) -> bool:
+    if len(queens) != 8:
+        return False
+
+    for i in range(8):
+        for j in range(i + 1, 8):
+            if queens[i][0] == queens[j][0] or queens[i][1] == queens[j][1]:
+                return False
+            if abs(queens[i][0] - queens[j][0]) == abs(queens[i][1] - queens[j][1]):
+                return False
+
     return True
 
 # Main function
@@ -72,9 +61,9 @@ def main():
     pygame.display.set_caption("N-Queens Problem")
 
     levels_file = 'data/n-queens/levels_50.jsonl'
-    instructions_file = 'outputs/one_Step/n-queens/models/n-queens.jsonl'
-    output_file = 'outputs/one_Step/n-queens/eval/eval.jsonl'
-    results_dir = 'outputs/one_Step/n-queens/eval/results'
+    instructions_file = 'outputs/one_step/models/formatted/n-queens.jsonl'
+    output_file = 'outputs/one_step/eval/n-queens.jsonl'
+    results_dir = 'outputs/one_step/eval/n-queens_results'
 
     # Ensure the output directories exist
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
@@ -84,32 +73,44 @@ def main():
     instructions = read_instructions(instructions_file)
     results = []
 
-    for level, instruction in zip(levels, instructions):
+    for instruction in instructions:
+        level = next(l for l in levels if l["level"] == instruction["level"])
         screen.fill(WHITE)
         draw_chessboard(screen)
 
         # Draw the initial queen
         first_queen = level["first"]
         draw_queen(screen, first_queen[0], first_queen[1], RED)
+
+        # Draw the rest of the queens
+        queens = [first_queen]
+        if instruction["output"]:
+            try:
+                additional_queens = ast.literal_eval(instruction["output"])
+                queens.extend(additional_queens)
+                for queen in additional_queens:
+                    draw_queen(screen, queen[0], queen[1], SKY_BLUE)
+            except:
+                pass
+
         pygame.display.flip()
-        pygame.time.wait(0)
 
-        # Draw the rest of the queens step by step
-        queens = instruction["output"]
-        for queen in queens:
-            draw_queen(screen, queen[0], queen[1], SKY_BLUE)
-            pygame.display.flip()
-            pygame.time.wait(0)
-
-        is_valid = validate_solution(level["board_size"], [first_queen] + queens)
-        results.append({"level": level["level"], "is_valid": is_valid})
-
-        # Save the final frame for each level
-        final_frame_path = os.path.join(results_dir, f'level_{level["level"]}.png')
+        is_valid = validate_solution(queens)
+        
+        # Save the final frame for each level and model
+        final_frame_path = os.path.join(results_dir, f'level_{level["level"]}_model_{instruction["model"]}.png')
         pygame.image.save(screen, final_frame_path)
 
+        results.append({
+            "level": level["level"],
+            "model": instruction["model"],
+            "output": instruction["output"],
+            "is_valid": is_valid,
+            "image": final_frame_path
+        })
+
         # Pause for a moment to visualize each level
-        pygame.time.wait(0)
+        pygame.time.wait(500)
 
     # Write the results to the output file
     with open(output_file, 'w') as outfile:
