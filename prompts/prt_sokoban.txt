@@ -1,0 +1,25 @@
+This is an image of a level of the Sokoban game.
+Your task is to complete this level by outputting movement instructions based on this image one step at a time.
+
+Objective: Move all boxes onto the designated storage locations (goals).
+
+Rules:
+    1. Movement: The player can move up (U), down (D), left (L), or right (R).
+    2. Pushing Boxes: The player can push one box at a time by moving towards it. Boxes can only be pushed, not pulled.
+    3. Grid Limitations: The player and boxes can only move into empty spaces. Walls and other boxes block movement.
+
+Restrictions:
+    a. A box cannot be pushed if there is another box or a wall directly behind it.
+    b. The player cannot move through boxes or walls.
+
+Illustration:
+    1. Dashed grid: dock (goal)
+    2. Yellow box: box on the floor
+    3. Brown box: box on the dock
+
+Instructions:
+    1. You need to think carefully because you only get one chance.
+    2. Provide a single movement instruction using only the letters: "L" (left), "R" (right), "U" (up), "D" (down).
+    3. Example single step output: "D"
+
+Your answer:

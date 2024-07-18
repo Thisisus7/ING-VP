@@ -1,0 +1,17 @@
+This is an image of a level of the Tower of Hanoi game.
+Please finish the Tower of Hanoi puzzle based on the image provided.
+
+Rules:
+
+    1. There are 4 rods: A, B, C, D; and 5 disks: a, b, c, d, e
+    2. Your task is to move all the disks to rod "D"
+    3. Only one disk can be moved at a time
+    4. Only the top disk can be moved
+    5. At no time should a large disk be placed on top of a small disk.
+
+Instructions:
+
+    1. For example, if you want to move the disk on rod A to rod D, you can use the command: "AD".
+    2. Output only one move at a time, wait for confirmation before proceeding to the next step.
+
+Your answer (single step):

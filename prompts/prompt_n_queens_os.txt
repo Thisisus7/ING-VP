@@ -13,6 +13,6 @@ Note:
 	2. The position of the first queen is already given, so do not include it in your asnwer.
 	3. Your output should be a list of list: "[[row_1, col_1], [row_2, col_2], ...]".
 
-Example output: "[[0,2], [3,1], [2,3]]"
+Example output: [[0,2], [3,1], [2,3]]
 
-Your output:
+Your answer:

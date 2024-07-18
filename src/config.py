@@ -14,22 +14,27 @@ logging.basicConfig(
 GAMES = [
     {
         "name": "maze",
-        "prompt_path": "prompts/prompt_maze.txt",
+        "prompt_path": "prompts/prompt_maze_os.txt",
         "image_path_format": r'data\maze\LevelImages\level_{}.png'
     },
     {
         "name": "sokoban",
-        "prompt_path": "prompts/prompt_sokoban.txt",
+        "prompt_path": "prompts/prompt_sokoban_os.txt",
         "image_path_format": r'data\sokoban\LevelImages\level_{}.png'
     },
     {
         "name": "n-queens",
-        "prompt_path": "prompts/prompt_n_queens.txt",
+        "prompt_path": "prompts/prompt_n_queens_os.txt",
         "image_path_format": r'data\n-queens\LevelImages\level_{}.png'
     },
     {
         "name": "sudoku",
-        "prompt_path": "prompts/prompt_sudoku.txt",
+        "prompt_path": "prompts/prompt_sudoku_os.txt",
+        "image_path_format": r'data\sudoku\LevelImages\level_{}.png'
+    },
+    {
+        "name": "hanoi",
+        "prompt_path": "prompts/prompt_hanoi_os.txt",
         "image_path_format": r'data\sudoku\LevelImages\level_{}.png'
     },
 ]

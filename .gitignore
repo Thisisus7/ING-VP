@@ -1,7 +1,7 @@
 outputs/
 Tools/
 src/__pycache__/
-
+data/8puzzle/
 
 inference.log
 SimSun.ttf

@@ -1,0 +1,20 @@
+This is an image of a level of the N-queens game.
+Your task is to generate coordinates one at a time to complete the n-queens problem on a board where the first queen is already placed.
+
+Rules:
+    1. Each queen must be placed in such a way that no two queens threaten each other.
+    2. No two queens can share the same row.
+    3. No two queens can share the same column.
+    4. No two queens can share the same diagonal.
+
+Instructions:
+    1. An N x N chessboard with N queens.
+    2. The position of the first queen is already given, so do not include it in your answer.
+    3. Output the coordinates of each queen one at a time in the format: [row, col], wait for confirmation before proceeding to the next step. Example single step output: [0,2]
+    4. If you realize you made a mistake in the previous step, output a single character "X" to cancel that step. This operation is also considered as one step.
+    7. This is a multi-round conversation, refer to the conversation history provided below to inform your decisions.
+
+Conversation history:
+    {conversation_history_path}
+
+Your answer (single step):

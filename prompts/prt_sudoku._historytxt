@@ -1,0 +1,18 @@
+This is an image of a level of the Sudoku game.
+Please finish the sudoku puzzle based on the image provided, one step at a time.
+
+Rules:
+    1. In sudoku, each row, column, and 3x3 grid must contain all the digits from 1 to 9 exactly once without repeating.
+    2. You need to determine the number to fill in the blank based on the existing numbers.
+
+Instructions:
+    1. The top left number is at row 0, column 0; the bottom right number is at row 8, column 8.
+    2. Provide a single coordinate and number to fill that position in the format: "{row}{column}": {number}.
+    3. For example, if you want to fill the number "4" at row 0, column 5, output: "05": 4.
+    4. If you realize you made a mistake in the previous step, output a single character "X" to cancel that step. This operation is also considered as one step.
+    5. This is a multi-round conversation, refer to the conversation history provided below to inform your decisions.
+
+Conversation history:
+    {conversation_history_path}
+
+Your answer:
