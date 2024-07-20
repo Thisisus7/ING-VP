@@ -19,7 +19,8 @@ Illustration:
 
 Instructions:
     1. You need to think carefully because you only get one chance.
-    2. Provide a single movement instruction using only the letters: "L" (left), "R" (right), "U" (up), "D" (down).
-    3. Example single step output: "D"
+    2. Provide a single movement instruction using only the letters: "L" (left), "R" (right), "U" (up), "D" (down). Example single step output: "D"
+    3. If you think you are in an irreversible error state, or there is an error in the previous step,output a single character "Z" to cancel that step. This operation is also considered as one step.
+    4. If you think the current level is complete, output "X" as the end.
 
 Your answer:

@@ -11,8 +11,7 @@ Rules:
 Output Instructions:
     1. Provide movement instructions using only the letters: "L" (left), "R" (right), "U" (up), "D" (down). For example, to move right, the command should be "R".
     2. Output only one move at a time., wait for confirmation before proceeding to the next step.
-    3. If you realize you made a mistake in the previous step, output a single character "X" to cancel that step. This operation is also considered as one step.
-    4. This is a multi-round conversation, refer to the conversation history provided below to inform your decisions.
+    3. This is a multi-round conversation, refer to the conversation history provided below to inform your decisions.
 
 Conversation history:
     {conversation_history_path}

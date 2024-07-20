@@ -1,6 +1,6 @@
 outputs/
 Tools/
-src/__pycache__/
+src/one_Step/__pycache__/
 data/8puzzle/
 
 inference.log
