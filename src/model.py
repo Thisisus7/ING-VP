@@ -44,6 +44,6 @@ class BLIP2Inferencer(ModelInferencer):
         raw_image = Image.open(image_path).convert('RGB')
         inputs = self.processor(raw_image, prompt, return_tensors="pt").to("cuda", torch.float16)
         with torch.inference_mode():
-            generation = self.model.generate(**inputs, max_new_tokens=100)
+            generation = self.model.generate(**inputs, max_new_tokens=300)
             result = self.processor.decode(generation[0], skip_special_tokens=True).strip()
         return result
