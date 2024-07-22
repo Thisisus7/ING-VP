@@ -31,7 +31,7 @@ class QwenVLChatInferencer(ModelInferencer):
             {'image': image_path},
             {'text': prompt},
         ])
-        response, _ = self.model.chat(self.tokenizer, query=query, history=None)
+        response, _ = self.model.chat(self.tokenizer, query=query, history=None, max_new_tokens=5)
         return response
 
 class BLIP2Inferencer(ModelInferencer):
