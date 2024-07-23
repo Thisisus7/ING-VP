@@ -7,8 +7,8 @@ def extract_instructions(output, filename):
         # For maze and sokoban, extract UDLR instructions
         instructions = re.findall(r'[UDLR]+', output)
         return ''.join(instructions)
-    elif filename.startswith('n-queens'):
-        # For n-queens, extract the list of lists
+    elif filename.startswith('n_queens'):
+        # For n_queens, extract the list of lists
         match = re.search(r'\[(\[[\d,\s]+\](?:,\s*\[[\d,\s]+\])*)\]', output)
         if match:
             return match.group(0)

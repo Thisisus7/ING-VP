@@ -13,14 +13,14 @@ logging.basicConfig(
 
 # Configuration for games
 GAMES = [
-    # {
-    #     "name": "maze",
-    #     "levels_path": r"data\maze\levels_50.txt",
-    #     "prompt_path": r"prompts\prompt_maze_os.txt",
-    #     "prompt_ms_path": r"prompts\prt_maze.txt",
-    #     "prompt_ms_history_path": r"prompts\prt_maze.txt",
-    #     "image_path_format": r'data\maze\LevelImages\level_{}.png'
-    # },
+    {
+        "name": "maze",
+        "levels_path": r"data\maze\levels_50.txt",
+        "prompt_path": r"prompts\prompt_maze_os.txt",
+        "prompt_ms_path": r"prompts\prt_maze.txt",
+        "prompt_ms_history_path": r"prompts\prt_maze.txt",
+        "image_path_format": r'data\maze\LevelImages\level_{}.png'
+    },
     {
         "name": "sokoban",
         "levels_path": r"data\sokoban\levels_50.txt",
@@ -29,13 +29,14 @@ GAMES = [
         "prompt_ms_history_path": r"prompts\prt_sokoban_history.txt",
         "image_path_format": r'data\sokoban\LevelImages\level_{}.png'
     },
-    # {
-    #     "name": "n-queens",
-    #     "prompt_path": r"prompts\prompt_n_queens_os.txt",
-    #     "prompt_ms_path": r"prompts\prt_n_queens.txt",
-    #     "prompt_ms_history_path": r"prompts\prt_n_queens_history.txt",
-    #     "image_path_format": r'data\n-queens\LevelImages\level_{}.png'
-    # },
+    {
+        "name": "n_queens",
+        "levels_path": r"data\n_queens\levels_50.jsonl",
+        "prompt_path": r"prompts\prompt_n_queens_os.txt",
+        "prompt_ms_path": r"prompts\prt_n_queens.txt",
+        "prompt_ms_history_path": r"prompts\prt_n_queens_history.txt",
+        "image_path_format": r'data\n_queens\LevelImages\level_{}.png'
+    },
     # {
     #     "name": "sudoku",
     #     "prompt_path": r"prompts\prompt_sudoku_os.txt",

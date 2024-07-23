@@ -2,6 +2,7 @@ import pygame
 import sys
 import json
 import os
+import re
 
 # Initialize Pygame without display
 pygame.display.init()
@@ -110,6 +111,22 @@ def save_maze_to_file(maze, output_path):
         for row in maze:
             f.write(''.join(row) + '\n')
 
+def extract_moves(input_string):
+    # Find the position of the first "<"
+    angle_bracket_pos = input_string.find('<')
+    
+    if angle_bracket_pos != -1:
+        # Slice the string from the position after "<"
+        substring = input_string[angle_bracket_pos+1:]
+        
+        # Regular expression to find the first uppercase letter
+        match = re.search(r'[LRUD]', substring)
+        
+        if match:
+            return match.group(0)
+    
+    return ""
+
 # Function to evaluate moves, calculate results, and manage output
 def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_maze=None):
     results = []
@@ -126,7 +143,9 @@ def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_maz
             start_pos = find_agent_position(maze)
             end_pos = find_end_position(maze)
 
-        if move['output']:  # ---------------- need a format code -----------------------
+        extract_move = extract_moves(move['output'])
+
+        if extract_move:
             move_step = move['output'][0]
             new_pos = move_agent(maze, start_pos, move_step)   
             maze = update_maze(maze, start_pos, new_pos, end_pos)  
@@ -151,7 +170,7 @@ def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_maz
         results.append({
             "model": model_name,
             "level": level_num,
-            "output": move['output'],
+            "output": extract_move,
             "is_valid": is_valid,
             "step": step
         })

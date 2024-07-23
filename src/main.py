@@ -9,6 +9,7 @@ from config import GAMES, MODELS, START_LEVEL, END_LEVEL, OUTPUT_MS_DIR, MAX_STE
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from game.maze import maze_ms
 from game.sokoban import sokoban_ms
+from game.n_queens import n_queens_ms
 
 
 # Load levels from a file
@@ -108,15 +109,27 @@ def inference(game, model_name, inferencer, levels):
 
 # Function to evaluate the game using the model output
 def evaluation(game_name, level, model_name, moves_path, step, levels, current_level=None):
-    levels_path = f'data/{game_name}/levels_50.txt' if step == 1 else os.path.join(
-        OUTPUT_BASE_DIR,
-        "process_levels",
-        "base",
-        model_name,
-        game_name,
-        f"level_{level}",
-        f"step_{step-1}.txt"
-    )
+    game_functions = {
+        "maze": maze_ms.main,
+        "sokoban": sokoban_ms.main,
+        "n_queens": n_queens_ms.main,
+    }
+
+
+    if game_name in ["maze", "sokoban"]:
+        levels_path = f'data/{game_name}/levels_50.txt' if step == 1 else os.path.join(
+            OUTPUT_BASE_DIR,
+            "process_levels",
+            "base",
+            model_name,
+            game_name,
+            f"level_{level}",
+            f"step_{step-1}.txt"
+        )
+    elif game_name == "n_queens":
+        levels_path = f'data/{game_name}/levels_50.jsonl'
+    else:
+        raise ValueError(f"Unknown game name: {game_name}")
 
     # Read only the last line from the moves file
     with open(moves_path, 'r') as f:
@@ -127,8 +140,9 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
     with open(temp_moves_path, 'w') as f:
         json.dump(last_move, f)
 
-    if game_name == "maze":
-        is_valid, updated_level = maze_ms.main(
+    # Call the appropriate function based on game_name
+    if game_name in game_functions:
+        is_valid, updated_level = game_functions[game_name](
             levels_path=levels_path,
             moves_path=temp_moves_path,
             output_dir_base=OUTPUT_BASE_DIR,
@@ -137,16 +151,8 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
             levels=levels,
             current_level=current_level
         )
-    elif game_name == "sokoban":
-        is_valid, updated_level = sokoban_ms.main(
-            levels_path=levels_path,
-            moves_path=temp_moves_path,
-            output_dir_base=OUTPUT_BASE_DIR,
-            model_name=model_name,
-            step=step,
-            levels=levels,
-            current_level=current_level
-        )
+    else:
+        raise ValueError(f"Unknown game name: {game_name}")
 
     # Remove the temporary file
     os.remove(temp_moves_path)

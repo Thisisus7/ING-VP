@@ -13,7 +13,7 @@ if __name__ == "__main__":
         r".\game\sokoban\sokoban_os.py",
         r".\game\maze\maze_os.py",
         r".\game\sudoku\sudoku_os.py",
-        r".\game\n-queens\n_queens_os.py"
+        r".\game\n_queens\n_queens_os.py"
     ]
 
     for script in scripts:

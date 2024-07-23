@@ -31,14 +31,14 @@ class QwenVLChatInferencer(ModelInferencer):
             {'image': image_path},
             {'text': prompt},
         ])
-        response, _ = self.model.chat(self.tokenizer, query=query, history=None, max_new_tokens=5)
+        response, _ = self.model.chat(self.tokenizer, query=query, history=None, max_new_tokens=9)
         return response
 
 class BLIP2Inferencer(ModelInferencer):
     def load_model(self):
         self.processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
         quantization_config = BitsAndBytesConfig(load_in_8bit=True)
-        self.model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b", device_map="auto", quantization_config=quantization_config).eval()
+        self.model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b", device_map="auto")
 
     def infer(self, prompt: str, image_path: str) -> str:
         raw_image = Image.open(image_path).convert('RGB')

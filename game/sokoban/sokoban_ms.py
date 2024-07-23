@@ -2,6 +2,7 @@ import pygame
 import sys
 import json
 import os
+import re
 
 # Initialize Pygame without display
 pygame.init()
@@ -105,6 +106,22 @@ def save_game_state_to_file(state, output_path):
         for row in state:
             f.write(''.join(row) + '\n')
 
+def extract_move(input_string):
+    # Find the position of the first "<"
+    angle_bracket_pos = input_string.find('<')
+    
+    if angle_bracket_pos != -1:
+        # Slice the string from the position after "<"
+        substring = input_string[angle_bracket_pos+1:]
+        
+        # Regular expression to find the first uppercase letter
+        match = re.search(r'[LRUD]', substring)
+        
+        if match:
+            return match.group(0)
+    
+    return ""
+
 # Function to evaluate moves, calculate results, and manage output
 def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_state=None):
     results = []
@@ -117,8 +134,8 @@ def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_sta
 
         state = create_game_state(level, current_state)
 
-        if move['output']:
-            direction = move['output'][0]  # ---------------- need a format code -----------------------
+        direction = extract_move(move['output'])
+        if direction:
             state = move_worker(state, direction)
 
         # Save intermediate states
@@ -138,7 +155,7 @@ def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_sta
         results.append({
             "model": model_name,
             "level": level_num,
-            "output": move['output'],
+            "output": direction,
             "is_valid": is_valid,
             "step": step
         })

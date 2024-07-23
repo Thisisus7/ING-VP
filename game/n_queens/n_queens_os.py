@@ -40,7 +40,7 @@ def draw_chessboard(screen):
 def draw_queen(screen, row: int, col: int, color: Tuple[int, int, int]):
     pygame.draw.circle(screen, color, (col * CELL_SIZE + CELL_SIZE // 2, row * CELL_SIZE + CELL_SIZE // 2), CELL_SIZE // 3)
 
-# Function to validate N-Queens solution
+# Function to validate n_queens solution
 def validate_solution(queens: List[Tuple[int, int]]) -> bool:
     if len(queens) != 8:
         return False
@@ -58,12 +58,12 @@ def validate_solution(queens: List[Tuple[int, int]]) -> bool:
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
-    pygame.display.set_caption("N-Queens Problem")
+    pygame.display.set_caption("n_queens Problem")
 
-    levels_file = 'data/n-queens/levels_50.jsonl'
-    instructions_file = 'outputs/one_step/models/formatted/n-queens.jsonl'
-    output_file = 'outputs/one_step/eval/n-queens.jsonl'
-    results_dir = 'outputs/one_step/eval/n-queens_results'
+    levels_file = 'data/n_queens/levels_50.jsonl'
+    instructions_file = 'outputs/one_step/models/formatted/n_queens.jsonl'
+    output_file = 'outputs/one_step/eval/n_queens.jsonl'
+    results_dir = 'outputs/one_step/eval/n_queens_results'
 
     # Ensure the output directories exist
     os.makedirs(os.path.dirname(output_file), exist_ok=True)

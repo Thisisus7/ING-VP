@@ -10,6 +10,6 @@ Rules:
 	
 Note:
 	1. For example, if you want to move the plate on column A to column D, you can use the command: "AD"，
-	2. A complete can be example：["BD", "BA", "DA", "BD", "AB", "AD", "BD"]
+	2. A complete can be example：<["BD", "BA", "DA", "BD", "AB", "AD", "BD"]>
 	
 Your answer:

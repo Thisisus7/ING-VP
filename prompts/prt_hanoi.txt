@@ -11,7 +11,7 @@ Rules:
 
 Instructions:
 
-    1. For example, if you want to move the disk on rod A to rod D, you can use the command: "AD".
+    1. For example, if you want to move the disk on rod A to rod D, you can use the command: "<AD>".
     2. Output only one move at a time, wait for confirmation before proceeding to the next step.
 
 Your answer (single step):
