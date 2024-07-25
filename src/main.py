@@ -2,14 +2,19 @@ import os
 import sys
 sys.dont_write_bytecode = True
 import json
+import argparse
 
 from model import QwenVLChatInferencer, BLIP2Inferencer
-from config import GAMES, MODELS, START_LEVEL, END_LEVEL, OUTPUT_MS_DIR, MAX_STEPS, OUTPUT_BASE_DIR
+from config import GAMES, MODELS, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_BASE_DIR, OUTPUT_HIS_DIR
+from multi_step.prompts import replace_conversation_history
 # game
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from game.maze import maze_ms
 from game.sokoban import sokoban_ms
 from game.n_queens import n_queens_ms
+from game.sudoku import sudoku_ms
+from game.hanoi import hanoi_ms
+from game.n_puzzle import n_puzzle_ms
 
 
 # Load levels from a file
@@ -54,49 +59,46 @@ def save_output(path, model_name, game_name, level, step, output):
 # Factory function to create inferencers based on model name
 def create_inferencer(model_name):
     inferencer_classes = {
-        'qwen_vl_chat': QwenVLChatInferencer,
         'blip2': BLIP2Inferencer,
+        'qwen_vl_chat': QwenVLChatInferencer,
         # Add more model inferencer mappings here
     }
     return inferencer_classes[model_name]()
 
 # Process each game level with the specified model inferencer
-def inference(game, model_name, inferencer, levels):
-    prompt_template = load_prompt(game["prompt_ms_path"])
+def inference(game, model_name, inferencer, levels, use_history):
+    output_dir = OUTPUT_HIS_DIR if use_history else OUTPUT_BASE_DIR
+    prompt_path = game["prompt_ms_history_path"] if use_history else game["prompt_ms_path"]
+    prompt = load_prompt(prompt_path)
     level_states = {}
     
     for level in range(START_LEVEL, END_LEVEL + 1):
         step = 1
         is_valid = False
-        level_output_path = os.path.join(
-            OUTPUT_MS_DIR,
-            model_name,
-            game["name"],
-            f"level_{level}.jsonl"
-        )
+        level_output_path = os.path.join(output_dir, "models", model_name, game["name"], f"level_{level}.jsonl")
 
         while step <= MAX_STEPS and not is_valid:
             if step == 1:
                 image_path = game["image_path_format"].format(level)
             else:
                 image_path = os.path.join(
-                    OUTPUT_BASE_DIR,
+                    output_dir,
                     "process_images",
-                    "base",
                     model_name,
                     game["name"],
                     f"level_{level}",
                     f"step_{step-1}.png"
                 )
 
-            prompt = prompt_template.format(level=level, step=step)
-            output = inferencer.infer(prompt, image_path)
+            current_prompt = replace_conversation_history(prompt, model_name, game["name"], level) if use_history else prompt
+            print(current_prompt)
+            output = inferencer.infer(current_prompt, image_path)
 
             save_output(level_output_path, model_name, game["name"], level, step, output)
 
             # Evaluate the game with the model output
             current_level = level_states.get(level) if step > 1 else None
-            is_valid, updated_level= evaluation(game["name"], level, model_name, level_output_path, step, levels, current_level)
+            is_valid, updated_level = evaluation(game["name"], level, model_name, level_output_path, step, levels, current_level, output_dir)
 
             level_states[level] = updated_level
             
@@ -108,28 +110,38 @@ def inference(game, model_name, inferencer, levels):
     level_states.clear()
 
 # Function to evaluate the game using the model output
-def evaluation(game_name, level, model_name, moves_path, step, levels, current_level=None):
+def evaluation(game_name, level, model_name, moves_path, step, levels, current_level, output_dir):
     game_functions = {
         "maze": maze_ms.main,
         "sokoban": sokoban_ms.main,
         "n_queens": n_queens_ms.main,
+        "sudoku": sudoku_ms.main,
+        "hanoi": hanoi_ms.main,
+        "n_puzzle": n_puzzle_ms.main
     }
 
-
-    if game_name in ["maze", "sokoban"]:
-        levels_path = f'data/{game_name}/levels_50.txt' if step == 1 else os.path.join(
-            OUTPUT_BASE_DIR,
-            "process_levels",
-            "base",
-            model_name,
-            game_name,
-            f"level_{level}",
-            f"step_{step-1}.txt"
-        )
-    elif game_name == "n_queens":
-        levels_path = f'data/{game_name}/levels_50.jsonl'
+    if step == 1:
+        levels_path = f'data/{game_name}/levels_50.{"txt" if game_name in ["maze", "sokoban"] else "jsonl"}'
     else:
-        raise ValueError(f"Unknown game name: {game_name}")
+        if game_name in ["maze", "sokoban"]:
+            levels_path = os.path.join(
+                output_dir,
+                "process_levels",
+                model_name,
+                game_name,
+                f"level_{level}",
+                f"step_{step-1}.txt"
+            )
+        elif game_name in ["n_queens", "sudoku", "hanoi", "n_puzzle"]: 
+            levels_path = os.path.join(
+                output_dir,
+                "process_levels",
+                model_name,
+                game_name,
+                f"level_{level}.jsonl",
+            )
+        else:
+            raise ValueError(f"Unknown game name: {game_name}")
 
     # Read only the last line from the moves file
     with open(moves_path, 'r') as f:
@@ -145,7 +157,7 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
         is_valid, updated_level = game_functions[game_name](
             levels_path=levels_path,
             moves_path=temp_moves_path,
-            output_dir_base=OUTPUT_BASE_DIR,
+            output_dir_base=output_dir,
             model_name=model_name,
             step=step,
             levels=levels,
@@ -161,13 +173,24 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
 
 # Main function to load models and process games
 def main():
+    parser = argparse.ArgumentParser(description="How to run inference.")
+    parser.add_argument('--mode', choices=['base', 'history', 'all'], default='base',
+                        help='Inference mode: base (default), history, or all (both base and history)')
+    args = parser.parse_args()
+    
+
     for model_name in MODELS:
         inferencer = create_inferencer(model_name)
         inferencer.load_model()
         
         for game in GAMES:
             levels = load_levels(game["levels_path"])
-            inference(game, model_name, inferencer, levels)
+            
+            if args.mode in ['base', 'all']:
+                inference(game, model_name, inferencer, levels, use_history=False)
+            
+            if args.mode in ['history', 'all']:
+                inference(game, model_name, inferencer, levels, use_history=True)
         
         inferencer.cleanup()
 

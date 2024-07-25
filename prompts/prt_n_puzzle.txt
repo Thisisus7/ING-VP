@@ -1,0 +1,19 @@
+This is an image of a level of the n_puzzle game.
+Please finish the n_puzzle based on the image provided.
+
+
+Rules: 
+    1. The board is a square grid of size n * n;
+    2. The board contains n*n-1 numbered tiles and one empty space;
+    3. The goal is to rearrange the tiles so that they are in ascending order from the top left corner of the board;
+    4. Valid moves are up, down, left, and right.
+
+Instructions:
+    1. Use "<" and ">" to wrap your answer;
+    2. Your output format should be a number: "<number>".
+    3. if the number is around the empty space, they will swap positions.
+    4. If you think you are in an irreversible error state, or there is an error in the previous step,output a single character "Z" to cancel that step. This operation is also considered as one step.
+
+Example output: <6>
+
+Your answer (single step):

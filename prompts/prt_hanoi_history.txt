@@ -11,9 +11,10 @@ Rules:
 
 Instructions:
 
-    1. For example, if you want to move the disk on rod A to rod D, you can use the command: "<AD>".
-    2. Output only one move at a time, wait for confirmation before proceeding to the next step.
-    3. This is a multi-round conversation, refer to the conversation history provided below to inform your decisions.
+    1. Use "<" and ">" to wrap your answer;
+    2. For example, if you want to move the disk on rod A to rod D, you can use the command: "<AD>".
+    3. Output only one move at a time, wait for confirmation before proceeding to the next step.
+    4. This is a multi-round conversation, refer to the conversation history provided below to inform your decisions.
 
 Conversation history:
     {conversation_history_path}

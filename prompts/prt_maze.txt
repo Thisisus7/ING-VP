@@ -9,7 +9,8 @@ Rules:
     4. White area: floor, able to pass.
 
 Output Instructions:
-    1. Provide movement instructions using only the letters: "L" (left), "R" (right), "U" (up), "D" (down). For example, to move right, the command should be "<R>".
-    2. Output only one move at a time, wait for confirmation before proceeding to the next step.
+    1. Use "<" and ">" to wrap your answer;
+    2. Provide movement instructions using only the letters: "L" (left), "R" (right), "U" (up), "D" (down). For example, to move right, the command should be "<R>".
+    3. Output only one move at a time, wait for confirmation before proceeding to the next step.
 
 Your answer (single step):

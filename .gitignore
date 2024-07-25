@@ -1,6 +1,6 @@
 outputs/
 Tools/
-data/8puzzle/
 
 inference.log
 SimSun.ttf
+run.sh

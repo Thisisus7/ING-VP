@@ -11,8 +11,9 @@ Each queen must be placed in such a way that no two queens threaten each other.
 Note:
 	1. An N x N chessboard with N queens.
 	2. The position of the first queen is already given, so do not include it in your asnwer.
-	3. Your output should be a list of list: "<[[row_1, col_1], [row_2, col_2], ...]>".
-	4. If your chess piece violates the three rules, it will be ignored.
+	3. Use "<" and ">" to wrap your answer;
+	4. Your output should be a list of list: "<[[row_1, col_1], [row_2, col_2], ...]>".
+	5. If your chess piece violates the three rules, it will be ignored.
 
 Example output: <[[0,2], [3,1], [2,3]]>
 

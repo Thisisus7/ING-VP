@@ -139,8 +139,8 @@ def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_sta
             state = move_worker(state, direction)
 
         # Save intermediate states
-        image_dir = os.path.join(output_base_dir, "process_images", "base", model_name, "sokoban", f"level_{level_num}")
-        level_dir = os.path.join(output_base_dir, "process_levels", "base", model_name, "sokoban", f"level_{level_num}")
+        image_dir = os.path.join(output_base_dir, "process_images",  model_name, "sokoban", f"level_{level_num}")
+        level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "sokoban", f"level_{level_num}")
         os.makedirs(image_dir, exist_ok=True)
         os.makedirs(level_dir, exist_ok=True)
 
@@ -170,7 +170,7 @@ def main(levels_path, moves_path, output_dir_base, model_name, step, levels, cur
         print("No valid results found.")
         return is_valid, None
 
-    eval_dir = os.path.join(output_dir_base, "eval", "base", model_name, "sokoban")
+    eval_dir = os.path.join(output_dir_base, "eval",  model_name, "sokoban")
     os.makedirs(eval_dir, exist_ok=True)
     eval_path = os.path.join(eval_dir, f'level_{results[0]["level"]}.jsonl')
 

@@ -9,7 +9,8 @@ Rules:
 	5. At no time should a large disk be placed on top of a small disk.
 	
 Note:
-	1. For example, if you want to move the plate on column A to column D, you can use the command: "AD"，
-	2. A complete can be example：<["BD", "BA", "DA", "BD", "AB", "AD", "BD"]>
+	1. Use "<" and ">" to wrap your answer;
+	2. For example, if you want to move the plate on column A to column D, you can use the command: "AD"，
+	3. A complete can be example：<["BD", "BA", "DA", "BD", "AB", "AD", "BD"]>
 	
 Your answer:

@@ -52,7 +52,6 @@ def draw_game_state(state, output_path):
     screen = pygame.Surface((SCREEN_SIZE, SCREEN_SIZE))
     draw_chessboard(screen, state['board_size'])
     
-    print(f"state['queens']: {state['queens']}")
     for i, queen in enumerate(state['queens']):
         color = RED if i == 0 else SKY_BLUE
         draw_queen(screen, queen[0], queen[1], color)
@@ -60,6 +59,8 @@ def draw_game_state(state, output_path):
     pygame.image.save(screen, output_path)
 
 def is_valid_move(queens, new_queen):
+    if not(new_queen[0] < 8 and new_queen[1] < 8):
+        return False
     for queen in queens:
         if (queen[0] == new_queen[0] or  # same row
             queen[1] == new_queen[1] or  # same column
@@ -91,12 +92,13 @@ def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_sta
         state = create_game_state(level, current_state)
 
         extract_move = extract_coordinates(move['output'])
+        # extract_move = [1 + step,1 + step*2]
         if extract_move and is_valid_move(state['queens'], extract_move):
             state['queens'].append(extract_move)
 
         # Save intermediate states
-        image_dir = os.path.join(output_base_dir, "process_images", "base", model_name, "n_queens", f"level_{level_num}")
-        level_dir = os.path.join(output_base_dir, "process_levels", "base", model_name, "n_queens")
+        image_dir = os.path.join(output_base_dir, "process_images",  model_name, "n_queens", f"level_{level_num}")
+        level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "n_queens")
         os.makedirs(image_dir, exist_ok=True)
         os.makedirs(level_dir, exist_ok=True)
 
@@ -152,7 +154,7 @@ def main(levels_path, moves_path, output_dir_base, model_name, step, levels, cur
     if step > 1 and current_level is None:
         # Load the previous state from the process_levels file
         level_num = moves[0]['level']
-        level_path = os.path.join(output_dir_base, "process_levels", "base", model_name, "n_queens", f"level_{level_num}.jsonl")
+        level_path = os.path.join(output_dir_base, "process_levels",  model_name, "n_queens", f"level_{level_num}.jsonl")
         with open(level_path, 'r') as f:
             for line in f:
                 data = json.loads(line)
@@ -170,7 +172,7 @@ def main(levels_path, moves_path, output_dir_base, model_name, step, levels, cur
         print("No valid results found.")
         return False, None
 
-    eval_dir = os.path.join(output_dir_base, "eval", "base", model_name, "n_queens")
+    eval_dir = os.path.join(output_dir_base, "eval",  model_name, "n_queens")
     os.makedirs(eval_dir, exist_ok=True)
     eval_path = os.path.join(eval_dir, f'level_{results[0]["level"]}.jsonl')
 

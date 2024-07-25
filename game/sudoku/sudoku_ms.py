@@ -1,0 +1,186 @@
+import pygame
+import sys
+import json
+import os
+import re
+
+# Initialize Pygame without display
+pygame.init()
+pygame.display.init()
+pygame.display.set_mode((1, 1))
+
+# Constants
+SCREEN_SIZE = 450
+GRID_SIZE = 9
+CELL_SIZE = SCREEN_SIZE // GRID_SIZE
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+BLUE = (0, 0, 255)
+RED = (255, 0, 0)
+
+def load_moves(filename, current_step):
+    moves = []
+    with open(filename, 'r') as f:
+        for line in f:
+            move = json.loads(line)
+            if move['step'] == current_step:
+                moves.append(move)
+    return moves
+
+def create_game_state(level, current_state=None):
+    if current_state:
+        return current_state
+
+    return {
+        'quiz': level['quiz'],
+        'solution': level['solutions'],
+        'clue_numbers': level['clue_numbers'],
+        'current_board': level['quiz']
+    }
+
+def draw_grid(screen):
+    for i in range(GRID_SIZE + 1):
+        thickness = 3 if i % 3 == 0 else 1
+        pygame.draw.line(screen, BLACK, (i * CELL_SIZE, 0), (i * CELL_SIZE, SCREEN_SIZE), thickness)
+        pygame.draw.line(screen, BLACK, (0, i * CELL_SIZE), (SCREEN_SIZE, i * CELL_SIZE), thickness)
+
+def draw_numbers(screen, board, solution, added_positions):
+    font = pygame.font.Font(None, 36)
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
+            num = board[row * GRID_SIZE + col]
+            if num != '0':
+                if (row, col) in added_positions:
+                    color = BLUE if num == solution[row * GRID_SIZE + col] else RED
+                else:
+                    color = BLACK
+                text = font.render(num, True, color)
+                screen.blit(text, (col * CELL_SIZE + CELL_SIZE // 3, row * CELL_SIZE + CELL_SIZE // 4))
+
+def draw_game_state(state, output_path, added_positions):
+    screen = pygame.Surface((SCREEN_SIZE, SCREEN_SIZE))
+    screen.fill(WHITE)
+    draw_grid(screen)
+    draw_numbers(screen, state['current_board'], state['solution'], added_positions)
+    pygame.image.save(screen, output_path)
+
+def extract_move(input_string):
+    # Extract move from the model output
+    try:
+        move = json.loads(input_string)
+        return move
+    except json.JSONDecodeError:
+        return {}
+
+def update_game_state(state, move):
+    added_positions = set()
+    new_board = list(state['current_board'])
+    for pos, value in move.items():
+        row, col = int(pos[0]), int(pos[1])
+        index = row * GRID_SIZE + col
+        if new_board[index] == '0':
+            new_board[index] = str(value)
+            added_positions.add((row, col))
+    state['current_board'] = ''.join(new_board)
+    return state, added_positions
+
+def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_state=None):
+    results = []
+    is_valid = False
+
+    for move in moves:
+        level_num = move['level']
+        level = json.loads(levels[0][level_num-1])
+        # level = next(l for l in json.loads(levels[0]) if l['level'] == level_num)
+        print(f"Processing level {level_num}, step {step}")
+
+        state = create_game_state(level, current_state)
+
+        extracted_move = extract_move(move['output'])
+        state, added_positions = update_game_state(state, extracted_move)
+
+        # Save intermediate states
+        image_dir = os.path.join(output_base_dir, "process_images",  model_name, "sudoku", f"level_{level_num}")
+        level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "sudoku")
+        os.makedirs(image_dir, exist_ok=True)
+        os.makedirs(level_dir, exist_ok=True)
+
+        image_path = os.path.join(image_dir, f"step_{step}.png")
+        level_path = os.path.join(level_dir, f"level_{level_num}.jsonl")
+
+        draw_game_state(state, image_path, added_positions)
+        save_game_state_to_file(state, level_path, level_num, step, extracted_move)
+
+        is_valid = validate_solution(state['current_board'], state['solution'])
+
+        results.append({
+            "model": model_name,
+            "level": level_num,
+            "output": move['output'],
+            "is_valid": is_valid,
+            "step": step
+        })
+
+    return results, is_valid, state
+
+def validate_solution(board, solution):
+    return board == solution
+
+def save_game_state_to_file(state, output_path, level, step, output):
+    data = {
+        "game": "sudoku",
+        "level": level,
+        "clue_numbers": state['clue_numbers'],
+        "step": step,
+        "output": output
+    }
+    
+    with open(output_path, 'a') as f:
+        json.dump(data, f)
+        f.write('\n')
+
+def main(levels_path, moves_path, output_dir_base, model_name, step, levels, current_level=None):
+    moves = load_moves(moves_path, step)
+    
+    if step > 1 and current_level is None:
+        # Load the previous state from the process_levels file
+        level_num = moves[0]['level']
+        level_path = os.path.join(output_dir_base, "process_levels",  model_name, "sudoku", f"level_{level_num}.jsonl")
+        with open(level_path, 'r') as f:
+            for line in f:
+                data = json.loads(line)
+                if data['step'] == step - 1:
+                    current_level = {
+                        'quiz': data['quiz'],
+                        'solutions': data['solutions'],
+                        'clue_numbers': data['clue_numbers'],
+                        'current_board': data['current_board']
+                    }
+                    break
+
+    results, is_valid, updated_state = evaluate_moves(levels, moves, model_name, output_dir_base, step, current_level)
+
+    if not results:
+        print("No valid results found.")
+        return False, None
+
+    eval_dir = os.path.join(output_dir_base, "eval",  model_name, "sudoku")
+    os.makedirs(eval_dir, exist_ok=True)
+    eval_path = os.path.join(eval_dir, f'level_{results[0]["level"]}.jsonl')
+
+    with open(eval_path, 'a') as f:
+        for result in results:
+            json.dump(result, f)
+            f.write('\n')
+
+    return is_valid, updated_state
+
+if __name__ == "__main__":
+    levels_path = sys.argv[1]
+    moves_path = sys.argv[2]
+    output_dir_base = sys.argv[3]
+    model_name = sys.argv[4]
+    step = int(sys.argv[5])
+    levels = json.loads(sys.argv[6])
+    is_valid, _ = main(levels_path, moves_path, output_dir_base, model_name, step, levels)
+    sys.exit(0 if is_valid else 1)
