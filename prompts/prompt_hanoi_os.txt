@@ -9,8 +9,6 @@ Rules:
 	5. At no time should a large disk be placed on top of a small disk.
 	
 Note:
-	1. Use "<" and ">" to wrap your answer;
-	2. For example, if you want to move the plate on column A to column D, you can use the command: "AD"，
-	3. A complete can be example：<["BD", "BA", "DA", "BD", "AB", "AD", "BD"]>
+	1. Use JSON as your output format: {"output": ["AC", "AD", ...]}, which means move the top disk on rod A to rod C, then move the top disk on rod A to rod D and so on.
 	
 Your answer:

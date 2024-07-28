@@ -6,9 +6,8 @@ Rules:
 	2. You need to determine the number to fill in the blank based on the existing numbers.
 
 instructions:
-	1. The top left number is at row 0, column 0; the bottom right number is at row 8, column 8
-	2. For example, if you want to fill number "4" to row 0, column 5, output: "05": 4
-	3. Use "<" and ">" to wrap your answer;
-	4. Example output: <{"02": 4, "17": 6, "32": 2, "34": 2, "55": 8}>
+    1. The top left number is at row 0, column 0; the bottom right number is at row 8, column 8.
+    2. Use JSON as your output format: {"output": {"{row}{column}": {number}, "{row}{column}": {number}, ...}}.
+    3. The range of {row} and {column} are 0-8, the range of {number} is 1-9. 
 
 Your answer:

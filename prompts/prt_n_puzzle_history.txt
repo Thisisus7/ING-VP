@@ -9,13 +9,12 @@ Rules:
     4. Valid moves are up, down, left, and right.
 
 Instructions:
-    1. Use "<" and ">" to wrap your answer;
-    2. Your output format should be a number: "< number >".
-    3. if the number is around the empty space, they will swap positions.
-    4. If you think you are in an irreversible error state, or there is an error in the previous step,output a single character "Z" to cancel that step. This operation is also considered as one step.
-    5. This is a multi-round conversation, refer to the conversation history provided below to inform your decisions.
+	1. Use JSON as your output format: {"output": number}.
+    2. if the number is around the empty space, they will swap positions.
+    3. This is a multi-turn conversation. The conversation history provided below may be helpful to you.
 
 Conversation history:
-    {conversation_history_path}
+
+{conversation_history_path}
 
 Your answer (single step):

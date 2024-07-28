@@ -29,16 +29,6 @@ TOWER_POSITIONS = {
     "D": (700, 100)
 }
 
-# Function to load movement commands from a file
-def load_moves(filename, current_step):
-    moves = []
-    with open(filename, 'r') as f:
-        for line in f:
-            move = json.loads(line)
-            if move['step'] == current_step:
-                moves.append(move)
-    return moves
-
 def create_game_state(level, current_state=None):
     if current_state:
         return current_state
@@ -84,10 +74,16 @@ def is_valid_move(state, source, destination):
     return True
 
 def extract_move(input_string):
-    pattern = r"<([A-D])([A-D])>"
-    match = re.search(pattern, input_string)
-    if match:
-        return match.group(1), match.group(2)
+    if input_string:
+        pattern = r'\{.*?\}'
+        match = re.search(pattern, input_string)
+        if match:
+            json_string = match.group(0)
+            try:
+                move = json.loads(json_string)
+                return move["output"][0], move["output"][1]
+            except Exception as e:
+                print(f"Error: {e}")
     return None
 
 def validate_solution(state):
@@ -105,61 +101,59 @@ def save_game_state_to_file(state, output_path, level, step):
         json.dump(data, f)
         f.write('\n')
 
-def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_state=None):
+def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state=None):
     results = []
     is_valid = False
 
-    for move in moves:
-        level_num = move['level']
-        level = json.loads(levels[0][level_num-1])
-        if step == 1:
-            # For the first step, get the correct level data from the loaded levels
-            state = create_game_state(level)
-        else:
-            # For subsequent steps, use the current_state directly
-            state = current_state
-        print(f"Processing level {level_num}, step {step}")
+    level_num = last_move['level']
+    level = json.loads(levels[0][level_num-1])
+    if step == 1:
+        # For the first step, get the correct level data from the loaded levels
+        state = create_game_state(level)
+    else:
+        # For subsequent steps, use the current_state directly
+        state = current_state
+    print(f"Processing level {level_num}, step {step}")
 
-        state = create_game_state(level, current_state)
+    state = create_game_state(level, current_state)
 
-        extract_move_result = extract_move(move['output'])
-        if extract_move_result:
-            source, destination = extract_move_result
-            if is_valid_move(state, source, destination):
-                disk = state[source].pop()
-                state[destination].append(disk)
+    extract_move_result = extract_move(last_move['output'])
+    if extract_move_result:
+        source, destination = extract_move_result
+        if is_valid_move(state, source, destination):
+            disk = state[source].pop()
+            state[destination].append(disk)
 
-        # Save intermediate states
-        image_dir = os.path.join(output_base_dir, "process_images",  model_name, "hanoi", f"level_{level_num}")
-        level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "hanoi")
-        os.makedirs(image_dir, exist_ok=True)
-        os.makedirs(level_dir, exist_ok=True)
+    # Save intermediate states
+    image_dir = os.path.join(output_base_dir, "process_images",  model_name, "hanoi", f"level_{level_num}")
+    level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "hanoi")
+    os.makedirs(image_dir, exist_ok=True)
+    os.makedirs(level_dir, exist_ok=True)
 
-        image_path = os.path.join(image_dir, f"step_{step}.png")
-        level_path = os.path.join(level_dir, f"level_{level_num}.jsonl")
+    image_path = os.path.join(image_dir, f"step_{step}.png")
+    level_path = os.path.join(level_dir, f"level_{level_num}.jsonl")
 
-        draw_game_state(state, image_path)
-        save_game_state_to_file(state, level_path, level_num, step)
+    draw_game_state(state, image_path)
+    save_game_state_to_file(state, level_path, level_num, step)
 
-        is_valid = validate_solution(state)
+    is_valid = validate_solution(state)
 
-        results.append({
-            "model": model_name,
-            "level": level_num,
-            "output": f"{source}{destination}" if extract_move_result else None,
-            "is_valid": is_valid,
-            "step": step
-        })
+    results.append({
+        "model": model_name,
+        "level": level_num,
+        "output": f"{source}{destination}" if extract_move_result else None,
+        "is_valid": is_valid,
+        "step": step
+    })
 
     return results, is_valid, state
 
 # Main function (placeholder for now)
-def main(levels_path, moves_path, output_dir_base, model_name, step, levels, current_level=None):
-    moves = load_moves(moves_path, step)
+def main(last_move, output_dir_base, model_name, step, levels, current_level=None):
     
     if step > 1 and current_level is None:
         # Load the previous state from the process_levels file
-        level_num = moves[0]['level']
+        level_num = last_move['level']
         level_path = os.path.join(output_dir_base, "process_levels",  model_name, "hanoi", f"level_{level_num}.jsonl")
         with open(level_path, 'r') as f:
             for line in f:
@@ -168,7 +162,7 @@ def main(levels_path, moves_path, output_dir_base, model_name, step, levels, cur
                     current_level = {'position': data['position']}
                     break
 
-    results, is_valid, updated_state = evaluate_moves(levels, moves, model_name, output_dir_base, step, current_level)
+    results, is_valid, updated_state = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level)
 
     if not results:
         print("No valid results found.")

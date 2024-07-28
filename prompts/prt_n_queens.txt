@@ -8,10 +8,10 @@ Rules: Each queen must be placed in such a way that no two queens threaten each 
 
 Instructions:
     1. An N x N chessboard with N queens.
-    2. The position of the first queen is already given, so do not include it in your answer.
-    3. Use "<" and ">" to wrap your answer;
-    4. Output the coordinates of each queen one at a time in the format: [row, col], wait for confirmation before proceeding to the next step. Example single step output: <[0,2]>
-    5. If you think you are in an irreversible error state, or there is an error in the previous step,output a single character "Z" to cancel that step. This operation is also considered as one step.
+    2. The coordinate range is from 0 to N-1.
+    3. The position of the first queen (red color) is already given, so do not include it in your answer.
+    4. Output the coordinates of each queen one at a time in the JSON format: {"output": [row, col]}
+    5. If you think you are in an irreversible error state and want to restart the level, use： {“output”: "restart"}
     6. If your chess piece violates the three rules, it will be ignored.
 
 Your answer (single step):

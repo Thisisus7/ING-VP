@@ -25,16 +25,6 @@ def load_images():
     }
     return images
 
-# Function to load movement commands from a file
-def load_moves(filename, current_step):
-    moves = []
-    with open(filename, 'r') as f:
-        for line in f:
-            move = json.loads(line)
-            if move['step'] == current_step:
-                moves.append(move)
-    return moves
-
 # Function to create game state
 def create_game_state(level, current_state=None):
     if current_state:
@@ -107,64 +97,59 @@ def save_game_state_to_file(state, output_path):
             f.write(''.join(row) + '\n')
 
 def extract_move(input_string):
-    # Find the position of the first "<"
-    angle_bracket_pos = input_string.find('<')
-    
-    if angle_bracket_pos != -1:
-        # Slice the string from the position after "<"
-        substring = input_string[angle_bracket_pos+1:]
-        
-        # Regular expression to find the first uppercase letter
-        match = re.search(r'[LRUD]', substring)
-        
+    if input_string:
+        pattern = r'\{.*?\}'
+        match = re.search(pattern, input_string)
         if match:
-            return match.group(0)
-    
-    return ""
+            json_string = match.group(0)
+            try: 
+                move = json.loads(json_string)
+                return move["output"]
+            except Exception as e:
+                print(f"Error: {e}")
+    return None
 
 # Function to evaluate moves, calculate results, and manage output
-def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_state=None):
+def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state=None):
     results = []
     is_valid = False
 
-    for move in moves:
-        level_num = move['level']
-        level = levels[level_num - 1]
-        print(f"Processing level {level_num}, step {step}")
+    level_num = last_move['level']
+    level = levels[level_num - 1]
+    print(f"Processing level {level_num}, step {step}")
 
-        state = create_game_state(level, current_state)
+    state = create_game_state(level, current_state)
 
-        direction = extract_move(move['output'])
-        if direction:
-            state = move_worker(state, direction)
+    direction = extract_move(last_move['output'])
+    if direction:
+        state = move_worker(state, direction)
 
-        # Save intermediate states
-        image_dir = os.path.join(output_base_dir, "process_images",  model_name, "sokoban", f"level_{level_num}")
-        level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "sokoban", f"level_{level_num}")
-        os.makedirs(image_dir, exist_ok=True)
-        os.makedirs(level_dir, exist_ok=True)
+    # Save intermediate states
+    image_dir = os.path.join(output_base_dir, "process_images",  model_name, "sokoban", f"level_{level_num}")
+    level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "sokoban", f"level_{level_num}")
+    os.makedirs(image_dir, exist_ok=True)
+    os.makedirs(level_dir, exist_ok=True)
 
-        image_path = os.path.join(image_dir, f"step_{step}.png")
-        level_path = os.path.join(level_dir, f"step_{step}.txt")
+    image_path = os.path.join(image_dir, f"step_{step}.png")
+    level_path = os.path.join(level_dir, f"step_{step}.txt")
 
-        draw_game_state(state, image_path)
-        save_game_state_to_file(state, level_path)
+    draw_game_state(state, image_path)
+    save_game_state_to_file(state, level_path)
 
-        is_valid = all('$' not in row for row in state)
+    is_valid = all('$' not in row for row in state)
 
-        results.append({
-            "model": model_name,
-            "level": level_num,
-            "output": direction,
-            "is_valid": is_valid,
-            "step": step
-        })
+    results.append({
+        "model": model_name,
+        "level": level_num,
+        "output": direction,
+        "is_valid": is_valid,
+        "step": step
+    })
 
     return results, is_valid, state
 
-def main(levels_path, moves_path, output_dir_base, model_name, step, levels, current_level=None):
-    moves = load_moves(moves_path, step)
-    results, is_valid, updated_state = evaluate_moves(levels, moves, model_name, output_dir_base, step, current_level)
+def main(last_move, output_dir_base, model_name, step, levels, current_level=None):
+    results, is_valid, updated_state = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level)
 
     if not results:
         print("No valid results found.")

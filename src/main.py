@@ -2,8 +2,10 @@ import os
 import sys
 sys.dont_write_bytecode = True
 import json
+import torch
 import argparse
 
+# from model import QwenVLChatInferencer, BLIP2Inferencer
 from model import QwenVLChatInferencer, BLIP2Inferencer
 from config import GAMES, MODELS, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_BASE_DIR, OUTPUT_HIS_DIR
 from multi_step.prompts import replace_conversation_history
@@ -16,6 +18,7 @@ from game.sudoku import sudoku_ms
 from game.hanoi import hanoi_ms
 from game.n_puzzle import n_puzzle_ms
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"  # GPU
 
 # Load levels from a file
 def load_levels(filename):
@@ -57,13 +60,13 @@ def save_output(path, model_name, game_name, level, step, output):
         file.write('\n')
 
 # Factory function to create inferencers based on model name
-def create_inferencer(model_name):
+def create_inferencer(model_name, device):
     inferencer_classes = {
         'blip2': BLIP2Inferencer,
         'qwen_vl_chat': QwenVLChatInferencer,
         # Add more model inferencer mappings here
     }
-    return inferencer_classes[model_name]()
+    return inferencer_classes[model_name](device)
 
 # Process each game level with the specified model inferencer
 def inference(game, model_name, inferencer, levels, use_history):
@@ -91,7 +94,6 @@ def inference(game, model_name, inferencer, levels, use_history):
                 )
 
             current_prompt = replace_conversation_history(prompt, model_name, game["name"], level) if use_history else prompt
-            print(current_prompt)
             output = inferencer.infer(current_prompt, image_path)
 
             save_output(level_output_path, model_name, game["name"], level, step, output)
@@ -147,16 +149,10 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
     with open(moves_path, 'r') as f:
         last_move = json.loads(f.readlines()[-1])
 
-    # Create a temporary file with only the last move
-    temp_moves_path = f"temp_moves_{level}_{step}.jsonl"
-    with open(temp_moves_path, 'w') as f:
-        json.dump(last_move, f)
-
     # Call the appropriate function based on game_name
     if game_name in game_functions:
         is_valid, updated_level = game_functions[game_name](
-            levels_path=levels_path,
-            moves_path=temp_moves_path,
+            last_move=last_move,
             output_dir_base=output_dir,
             model_name=model_name,
             step=step,
@@ -165,9 +161,6 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
         )
     else:
         raise ValueError(f"Unknown game name: {game_name}")
-
-    # Remove the temporary file
-    os.remove(temp_moves_path)
 
     return is_valid, updated_level
 
@@ -178,9 +171,10 @@ def main():
                         help='Inference mode: base (default), history, or all (both base and history)')
     args = parser.parse_args()
     
+    devices = [f"cuda:{i}" for i in range(torch.cuda.device_count())]
 
     for model_name in MODELS:
-        inferencer = create_inferencer(model_name)
+        inferencer = create_inferencer(model_name, devices)
         inferencer.load_model()
         
         for game in GAMES:

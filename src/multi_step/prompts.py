@@ -9,8 +9,7 @@ def replace_conversation_history(prompt, model_name, game_name, level):
         model_name, game_name, f"level_{level}.jsonl"
     )
     
-    # history_text = "\n"
-    history_text = "Your history output:\n"
+    history_text = ""
     
     if os.path.exists(conversation_history_path):
         with open(conversation_history_path, 'r') as f:

@@ -18,15 +18,6 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 
-def load_moves(filename, current_step):
-    moves = []
-    with open(filename, 'r') as f:
-        for line in f:
-            move = json.loads(line)
-            if move['step'] == current_step:
-                moves.append(move)
-    return moves
-
 def create_game_state(level, current_state=None):
     if current_state:
         return current_state
@@ -65,12 +56,16 @@ def draw_game_state(state, output_path, added_positions):
     pygame.image.save(screen, output_path)
 
 def extract_move(input_string):
-    # Extract move from the model output
-    try:
-        move = json.loads(input_string)
-        return move
-    except json.JSONDecodeError:
-        return {}
+    if input_string:
+        pattern = r'\{.*?\}'
+        match = re.search(pattern, input_string)
+        if match:
+            json_string = match.group(0)
+            try:
+                move = json.loads(json_string)
+                return move["output"]
+            except Exception as e:
+                print(f"Error: {e}")
 
 def update_game_state(state, move):
     added_positions = set()
@@ -84,42 +79,44 @@ def update_game_state(state, move):
     state['current_board'] = ''.join(new_board)
     return state, added_positions
 
-def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_state=None):
+def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state=None):
     results = []
     is_valid = False
 
-    for move in moves:
-        level_num = move['level']
-        level = json.loads(levels[0][level_num-1])
-        # level = next(l for l in json.loads(levels[0]) if l['level'] == level_num)
-        print(f"Processing level {level_num}, step {step}")
+    level_num = last_move['level']
+    level = json.loads(levels[0][level_num-1])
+    # level = next(l for l in json.loads(levels[0]) if l['level'] == level_num)
+    print(f"Processing level {level_num}, step {step}")
 
-        state = create_game_state(level, current_state)
+    state = create_game_state(level, current_state)
 
-        extracted_move = extract_move(move['output'])
+    extracted_move = extract_move(last_move['output'])
+    if extracted_move:
         state, added_positions = update_game_state(state, extracted_move)
+    else:
+        added_positions = set()
 
-        # Save intermediate states
-        image_dir = os.path.join(output_base_dir, "process_images",  model_name, "sudoku", f"level_{level_num}")
-        level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "sudoku")
-        os.makedirs(image_dir, exist_ok=True)
-        os.makedirs(level_dir, exist_ok=True)
+    # Save intermediate states
+    image_dir = os.path.join(output_base_dir, "process_images",  model_name, "sudoku", f"level_{level_num}")
+    level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "sudoku")
+    os.makedirs(image_dir, exist_ok=True)
+    os.makedirs(level_dir, exist_ok=True)
 
-        image_path = os.path.join(image_dir, f"step_{step}.png")
-        level_path = os.path.join(level_dir, f"level_{level_num}.jsonl")
+    image_path = os.path.join(image_dir, f"step_{step}.png")
+    level_path = os.path.join(level_dir, f"level_{level_num}.jsonl")
 
-        draw_game_state(state, image_path, added_positions)
-        save_game_state_to_file(state, level_path, level_num, step, extracted_move)
+    draw_game_state(state, image_path, added_positions)
+    save_game_state_to_file(state, level_path, level_num, step, extracted_move)
 
-        is_valid = validate_solution(state['current_board'], state['solution'])
+    is_valid = validate_solution(state['current_board'], state['solution'])
 
-        results.append({
-            "model": model_name,
-            "level": level_num,
-            "output": move['output'],
-            "is_valid": is_valid,
-            "step": step
-        })
+    results.append({
+        "model": model_name,
+        "level": level_num,
+        "output": extracted_move,
+        "is_valid": is_valid,
+        "step": step
+    })
 
     return results, is_valid, state
 
@@ -139,12 +136,10 @@ def save_game_state_to_file(state, output_path, level, step, output):
         json.dump(data, f)
         f.write('\n')
 
-def main(levels_path, moves_path, output_dir_base, model_name, step, levels, current_level=None):
-    moves = load_moves(moves_path, step)
-    
+def main(last_move, output_dir_base, model_name, step, levels, current_level=None):    
     if step > 1 and current_level is None:
         # Load the previous state from the process_levels file
-        level_num = moves[0]['level']
+        level_num = last_move['level']
         level_path = os.path.join(output_dir_base, "process_levels",  model_name, "sudoku", f"level_{level_num}.jsonl")
         with open(level_path, 'r') as f:
             for line in f:
@@ -158,7 +153,7 @@ def main(levels_path, moves_path, output_dir_base, model_name, step, levels, cur
                     }
                     break
 
-    results, is_valid, updated_state = evaluate_moves(levels, moves, model_name, output_dir_base, step, current_level)
+    results, is_valid, updated_state = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level)
 
     if not results:
         print("No valid results found.")

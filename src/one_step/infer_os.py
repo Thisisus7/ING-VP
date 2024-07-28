@@ -1,11 +1,11 @@
 import os
 import sys
+sys.dont_write_bytecode = True
 import json
 import torch
 from typing import List
-from model import QwenVLChatInferencer, BLIP2Inferencer
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from model import BLIP2Inferencer, QwenVLChatInferencer
 from config import GAMES, START_LEVEL, END_LEVEL, OUTPUT_OS_DIR as OUTPUT_DIR 
 
 class Game:
@@ -22,10 +22,8 @@ class Game:
         return self.image_path_format.format(level)
 
 class InferenceManager:
-    def __init__(self, games: List[Game], start_level: int, end_level: int, output_dir: str):
+    def __init__(self, games: List[Game], output_dir: str):
         self.games = games
-        self.start_level = start_level
-        self.end_level = end_level
         self.output_dir = output_dir
         self.inferencers = {
             "blip2": BLIP2Inferencer(),
@@ -43,7 +41,7 @@ class InferenceManager:
                 output_path = os.path.join(self.output_dir, f'{game.name}.jsonl')
 
                 with open(output_path, "a", encoding="utf-8") as file:
-                    for level in range(self.start_level, self.end_level + 1):
+                    for level in range(1, 50 + 1):
                         image_path = game.get_image_path(level)
                         response = inferencer.infer(prompt, image_path)
                         
@@ -59,11 +57,10 @@ class InferenceManager:
 
 def main():
     torch.manual_seed(1234)
-    games = [Game(**game) for game in GAMES]
+    filtered_games = [{k: v for k, v in game.items() if k in ['name', 'prompt_path', 'image_path_format']} for game in GAMES]
+    games = [Game(**game) for game in filtered_games]
     inference_manager = InferenceManager(
         games=games,
-        start_level=START_LEVEL,
-        end_level=END_LEVEL,
         output_dir=OUTPUT_DIR
     )
     inference_manager.run_inference()

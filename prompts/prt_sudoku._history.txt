@@ -7,11 +7,9 @@ Rules:
 
 Instructions:
     1. The top left number is at row 0, column 0; the bottom right number is at row 8, column 8.
-    2. Use "<" and ">" to wrap your answer.
-    3. Provide a single coordinate and number to fill that position in the format: "<{row}{column}": {number}>.
-    4. For example, if you want to fill the number "4" at row 0, column 5, output: <"05": 4>.
-    5. If you realize you made a mistake in the previous step, output a single character "<Z>" to cancel that step. This operation is also considered as one step.
-    6. This is a multi-round conversation, refer to the conversation history provided below to inform your decisions.
+    2. Use JSON as your output format: {"output": {"{row}{column}": {number}}}.
+    3. The range of {row} and {column} are 0-8, the range of {number} is 1-9.  
+    4. This is a multi-turn conversation. The conversation history provided below may be helpful to you.
 
 Conversation history:
     {conversation_history_path}

@@ -17,16 +17,6 @@ GREEN = (0, 255, 0)
 # Cell size for the maze
 CELL_SIZE = 30
 
-# Function to load movement commands from a file
-def load_moves(filename, current_step):
-    moves = []
-    with open(filename, 'r') as f:
-        for line in f:
-            move = json.loads(line)
-            if move['step'] == current_step:
-                moves.append(move)
-    return moves
-
 # Function to create maze in list of list
 def create_maze(level, current_maze=None):
     if current_maze:
@@ -112,74 +102,69 @@ def save_maze_to_file(maze, output_path):
             f.write(''.join(row) + '\n')
 
 def extract_moves(input_string):
-    # Find the position of the first "<"
-    angle_bracket_pos = input_string.find('<')
-    
-    if angle_bracket_pos != -1:
-        # Slice the string from the position after "<"
-        substring = input_string[angle_bracket_pos+1:]
-        
-        # Regular expression to find the first uppercase letter
-        match = re.search(r'[LRUD]', substring)
-        
+    if input_string:
+        pattern = r'\{.*?\}'
+        match = re.search(pattern, input_string)
         if match:
-            return match.group(0)
-    
-    return ""
+            json_string = match.group(0)
+            try: 
+                move = json.loads(json_string)
+                return move["output"]
+            except Exception as e:
+                print(f"Error: {e}")
+    return None
 
 # Function to evaluate moves, calculate results, and manage output
-def evaluate_moves(levels, moves, model_name, output_base_dir, step, current_maze=None):
+def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_maze=None):
     results = []
     is_valid = False  # Initialize is_valid
-    for move in moves:
-        level_num = move['level']
-        level = levels[level_num - 1]
-        print(f"Processing level {level_num}, step {step}")
 
-        if step == 1 or current_maze is None:
-            maze, start_pos, end_pos = create_maze(level)
-        else:
-            maze, _, _ = create_maze(level, current_maze)
-            start_pos = find_agent_position(maze)
-            end_pos = find_end_position(maze)
+    level_num = last_move['level']
+    level = levels[level_num - 1]
+    print(f"Processing level {level_num}, step {step}")
 
-        extract_move = extract_moves(move['output'])
+    if step == 1 or current_maze is None:
+        maze, start_pos, end_pos = create_maze(level)
+    else:
+        maze, _, _ = create_maze(level, current_maze)
+        start_pos = find_agent_position(maze)
+        end_pos = find_end_position(maze)
 
-        if extract_move:
-            move_step = move['output'][0]
-            new_pos = move_agent(maze, start_pos, move_step)   
-            maze = update_maze(maze, start_pos, new_pos, end_pos)  
-        else:
-            new_pos = start_pos
+    extract_move = extract_moves(last_move['output'])
 
-        # Save intermediate states
-        image_dir = os.path.join(output_base_dir, "process_images",  model_name, "maze", f"level_{level_num}")
-        level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "maze", f"level_{level_num}")
-        os.makedirs(image_dir, exist_ok=True)
-        os.makedirs(level_dir, exist_ok=True)
+    if extract_move:
+        new_pos = move_agent(maze, start_pos, extract_move)   
+        maze = update_maze(maze, start_pos, new_pos, end_pos)  
+    else:
+        new_pos = start_pos
 
-        image_path = os.path.join(image_dir, f"step_{step}.png")
-        level_path = os.path.join(level_dir, f"step_{step}.txt")
+    # Save intermediate states
+    image_dir = os.path.join(output_base_dir, "process_images",  model_name, "maze", f"level_{level_num}")
+    level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "maze", f"level_{level_num}")
+    os.makedirs(image_dir, exist_ok=True)
+    os.makedirs(level_dir, exist_ok=True)
 
-        draw_maze(maze, image_path)
-        save_maze_to_file(maze, level_path)
+    image_path = os.path.join(image_dir, f"step_{step}.png")
+    level_path = os.path.join(level_dir, f"step_{step}.txt")
 
-        if new_pos == end_pos:
-            is_valid = True
+    draw_maze(maze, image_path)
+    save_maze_to_file(maze, level_path)
 
-        results.append({
-            "model": model_name,
-            "level": level_num,
-            "output": extract_move,
-            "is_valid": is_valid,
-            "step": step
-        })
+    if new_pos == end_pos:
+        is_valid = True
+
+    results.append({
+        "model": model_name,
+        "level": level_num,
+        "output": extract_move,
+        "is_valid": is_valid,
+        "step": step
+    })
 
     return results, is_valid, maze
 
-def main(levels_path, moves_path, output_dir_base, model_name, step, levels, current_level=None):
-    moves = load_moves(moves_path, step)
-    results, is_valid, updated_maze = evaluate_moves(levels, moves, model_name, output_dir_base, step, current_level)
+def main(last_move, output_dir_base, model_name, step, levels, current_level=None):
+    results, is_valid, updated_maze = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level)
 
     if not results:
         print("No valid results found.")

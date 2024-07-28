@@ -9,11 +9,7 @@ Rules:
     4. Valid moves are up, down, left, and right.
 
 Instructions:
-    1. Use "<" and ">" to wrap your answer;
-    2. Your output format should be a number: "<number>".
-    3. if the number is around the empty space, they will swap positions.
-    4. If you think you are in an irreversible error state, or there is an error in the previous step,output a single character "Z" to cancel that step. This operation is also considered as one step.
-
-Example output: <6>
+	1. Use JSON as your output format: {"output": number}.
+    2. if the number is around the empty space, they will swap positions.
 
 Your answer (single step):

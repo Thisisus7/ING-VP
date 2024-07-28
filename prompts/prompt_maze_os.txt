@@ -7,8 +7,7 @@ Rules:
 	4. white area: floor, able to pass
 
 Output Instructions:
-    1. Use "<" and ">" to wrap your answer;
-	2. Provide movement instructions using only the letters: "L" (left), "R" (right), "U" (up), "D" (down).
-	3. For example, if you want to move two cells down, three cells to the right, one cell up, and two cells to the left, the example output: "<DDRRRULL>"
+	2. Provide movement instructions using only the 4 letters: "L" (left), "R" (right), "U" (up), "D" (down).
+	3. For example, if you want to move two cells down, three cells to the right, one cell up, and two cells to the left, the example output: {"output": "DDRRRULL"}
 
 Your answer:
