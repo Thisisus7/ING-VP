@@ -5,10 +5,11 @@ import json
 import torch
 import argparse
 
-# from model import QwenVLChatInferencer, BLIP2Inferencer
 from model import QwenVLChatInferencer, BLIP2Inferencer
-from config import GAMES, MODELS, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_BASE_DIR, OUTPUT_HIS_DIR
-from multi_step.prompts import replace_conversation_history
+from config import GAMES, MODELS, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_IMAGE_BASE_DIR, OUTPUT_IMAGE_HIS_DIR, OUTPUT_TEXT_BASE_DIR, OUTPUT_TEXT_HIS_DIR
+from multi_step.prompt_history import add_conversation_history
+from multi_step.prompt_text_level import add_level_to_prompt
+from multi_step.score import generate_score
 # game
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from game.maze import maze_ms
@@ -18,7 +19,6 @@ from game.sudoku import sudoku_ms
 from game.hanoi import hanoi_ms
 from game.n_puzzle import n_puzzle_ms
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"  # GPU
 
 # Load levels from a file
 def load_levels(filename):
@@ -60,18 +60,28 @@ def save_output(path, model_name, game_name, level, step, output):
         file.write('\n')
 
 # Factory function to create inferencers based on model name
-def create_inferencer(model_name, device):
+def create_inferencer(model_name):
     inferencer_classes = {
         'blip2': BLIP2Inferencer,
-        'qwen_vl_chat': QwenVLChatInferencer,
         # Add more model inferencer mappings here
     }
-    return inferencer_classes[model_name](device)
+    return inferencer_classes[model_name]()
 
 # Process each game level with the specified model inferencer
-def inference(game, model_name, inferencer, levels, use_history):
-    output_dir = OUTPUT_HIS_DIR if use_history else OUTPUT_BASE_DIR
-    prompt_path = game["prompt_ms_history_path"] if use_history else game["prompt_ms_path"]
+def inference(game, model_name, inferencer, levels, use_history, use_text):
+    if use_history and use_text:
+        output_dir = OUTPUT_TEXT_HIS_DIR
+        prompt_path = game["text_prompt_ms_history_path"]
+    elif use_history:
+        output_dir = OUTPUT_IMAGE_HIS_DIR
+        prompt_path = game["prompt_ms_history_path"]
+    elif use_text:
+        output_dir = OUTPUT_TEXT_BASE_DIR
+        prompt_path = game["text_prompt_ms_path"]
+    else:
+        output_dir = OUTPUT_IMAGE_BASE_DIR
+        prompt_path = game["prompt_ms_path"]
+    
     prompt = load_prompt(prompt_path)
     level_states = {}
     
@@ -82,18 +92,27 @@ def inference(game, model_name, inferencer, levels, use_history):
 
         while step <= MAX_STEPS and not is_valid:
             if step == 1:
-                image_path = game["image_path_format"].format(level)
+                if use_text:  # use text
+                    prompt = add_level_to_prompt(prompt, game, level, step, output_dir, model_name)
+                    image_path = "Null"
+                else:         # use image
+                    image_path = game["level_image_path"].format(level)
             else:
-                image_path = os.path.join(
-                    output_dir,
-                    "process_images",
-                    model_name,
-                    game["name"],
-                    f"level_{level}",
-                    f"step_{step-1}.png"
-                )
+                if use_text:  # use text
+                    prompt = add_level_to_prompt(prompt, game, level, step, output_dir, model_name)
+                    image_path = "Null"
+                else:         # use image
+                    image_path = os.path.join(
+                        output_dir,
+                        "process_images",
+                        model_name,
+                        game["name"],
+                        f"level_{level}",
+                        f"step_{step-1}.png"
+                    )
 
-            current_prompt = replace_conversation_history(prompt, model_name, game["name"], level) if use_history else prompt
+            current_prompt = add_conversation_history(prompt, model_name, game["name"], level) if use_history else prompt
+
             output = inferencer.infer(current_prompt, image_path)
 
             save_output(level_output_path, model_name, game["name"], level, step, output)
@@ -122,29 +141,6 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
         "n_puzzle": n_puzzle_ms.main
     }
 
-    if step == 1:
-        levels_path = f'data/{game_name}/levels_50.{"txt" if game_name in ["maze", "sokoban"] else "jsonl"}'
-    else:
-        if game_name in ["maze", "sokoban"]:
-            levels_path = os.path.join(
-                output_dir,
-                "process_levels",
-                model_name,
-                game_name,
-                f"level_{level}",
-                f"step_{step-1}.txt"
-            )
-        elif game_name in ["n_queens", "sudoku", "hanoi", "n_puzzle"]: 
-            levels_path = os.path.join(
-                output_dir,
-                "process_levels",
-                model_name,
-                game_name,
-                f"level_{level}.jsonl",
-            )
-        else:
-            raise ValueError(f"Unknown game name: {game_name}")
-
     # Read only the last line from the moves file
     with open(moves_path, 'r') as f:
         last_move = json.loads(f.readlines()[-1])
@@ -166,27 +162,30 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
 
 # Main function to load models and process games
 def main():
-    parser = argparse.ArgumentParser(description="How to run inference.")
-    parser.add_argument('--mode', choices=['base', 'history', 'all'], default='base',
-                        help='Inference mode: base (default), history, or all (both base and history)')
+    parser = argparse.ArgumentParser(description="Inference mode")
+    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_image',
+                        help='Inference mode: base_image (default), history_image, base_text, or history_text')
     args = parser.parse_args()
     
-    devices = [f"cuda:{i}" for i in range(torch.cuda.device_count())]
-
     for model_name in MODELS:
-        inferencer = create_inferencer(model_name, devices)
+        inferencer = create_inferencer(model_name)
         inferencer.load_model()
         
         for game in GAMES:
             levels = load_levels(game["levels_path"])
             
-            if args.mode in ['base', 'all']:
-                inference(game, model_name, inferencer, levels, use_history=False)
-            
-            if args.mode in ['history', 'all']:
-                inference(game, model_name, inferencer, levels, use_history=True)
+            if args.mode == 'base_image':
+                inference(game, model_name, inferencer, levels, use_history=False, use_text=False)
+            elif args.mode == 'history_image':
+                inference(game, model_name, inferencer, levels, use_history=True, use_text=False)
+            elif args.mode == 'base_text':
+                inference(game, model_name, inferencer, levels, use_history=False, use_text=True)
+            elif args.mode == 'history_text':
+                inference(game, model_name, inferencer, levels, use_history=True, use_text=True)
         
         inferencer.cleanup()
+
+    generate_score()
 
 if __name__ == "__main__":
     main()

@@ -3,8 +3,8 @@ Please finish the n_puzzle based on the image provided.
 
 
 Rules: 
-    1. The board is a square grid of size n * n;
-    2. The board contains n*n-1 numbered tiles and one empty space;
+    1. The board is a square grid of size 4 * 4;
+    2. The board contains 15 numbered tiles and one empty space;
     3. The goal is to rearrange the tiles so that they are in ascending order from the top left corner of the board;
     4. Valid moves are up, down, left, and right.
 

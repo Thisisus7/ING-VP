@@ -3,7 +3,7 @@
 import json
 import os
 
-def replace_conversation_history(prompt, model_name, game_name, level):
+def add_conversation_history(prompt, model_name, game_name, level):
     conversation_history_path = os.path.join(
         "outputs", "multi_step", "history", "models",
         model_name, game_name, f"level_{level}.jsonl"

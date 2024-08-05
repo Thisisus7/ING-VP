@@ -23,10 +23,10 @@ def create_game_state(level, current_state=None):
         return current_state
 
     return {
-        'quiz': level['quiz'],
+        'position': level['position'],
         'solution': level['solutions'],
         'clue_numbers': level['clue_numbers'],
-        'current_board': level['quiz']
+        'current_board': level['position']
     }
 
 def draw_grid(screen):
@@ -128,6 +128,7 @@ def save_game_state_to_file(state, output_path, level, step, output):
         "game": "sudoku",
         "level": level,
         "clue_numbers": state['clue_numbers'],
+        "position": state['position'],
         "step": step,
         "output": output
     }
@@ -146,7 +147,7 @@ def main(last_move, output_dir_base, model_name, step, levels, current_level=Non
                 data = json.loads(line)
                 if data['step'] == step - 1:
                     current_level = {
-                        'quiz': data['quiz'],
+                        'position': data['position'],
                         'solutions': data['solutions'],
                         'clue_numbers': data['clue_numbers'],
                         'current_board': data['current_board']

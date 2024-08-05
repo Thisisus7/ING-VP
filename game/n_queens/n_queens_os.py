@@ -79,7 +79,7 @@ def main():
         draw_chessboard(screen)
 
         # Draw the initial queen
-        first_queen = level["first"]
+        first_queen = level["position"]
         draw_queen(screen, first_queen[0], first_queen[1], RED)
 
         # Draw the rest of the queens

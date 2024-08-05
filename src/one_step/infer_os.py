@@ -9,17 +9,17 @@ from model import BLIP2Inferencer, QwenVLChatInferencer
 from config import GAMES, START_LEVEL, END_LEVEL, OUTPUT_OS_DIR as OUTPUT_DIR 
 
 class Game:
-    def __init__(self, name: str, prompt_path: str, image_path_format: str):
+    def __init__(self, name: str, prompt_path: str, level_image_path: str):
         self.name = name
         self.prompt_path = prompt_path
-        self.image_path_format = image_path_format
+        self.level_image_path = level_image_path
 
     def get_prompt(self) -> str:
         with open(self.prompt_path, "r", encoding="utf-8") as file:
             return file.read()
 
     def get_image_path(self, level: int) -> str:
-        return self.image_path_format.format(level)
+        return self.level_image_path.format(level)
 
 class InferenceManager:
     def __init__(self, games: List[Game], output_dir: str):
@@ -57,7 +57,7 @@ class InferenceManager:
 
 def main():
     torch.manual_seed(1234)
-    filtered_games = [{k: v for k, v in game.items() if k in ['name', 'prompt_path', 'image_path_format']} for game in GAMES]
+    filtered_games = [{k: v for k, v in game.items() if k in ['name', 'prompt_path', 'level_image_path']} for game in GAMES]
     games = [Game(**game) for game in filtered_games]
     inference_manager = InferenceManager(
         games=games,

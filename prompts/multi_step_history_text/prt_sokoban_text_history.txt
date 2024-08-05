@@ -1,7 +1,11 @@
-This is an image of a level of the Sokoban game.
-Your task is to complete this level by outputting movement instructions based on this image one step at a time.
+This is a text matrix of a level of the Sokoban game.
+Your task is to complete this level by outputting movement instructions based on this text matrix one step at a time.
 
-Objective: Move all boxes onto the designated storage locations (goals).
+Text matrix:
+
+{text_representation_path}
+
+Objective: Move all boxes onto the docks (goals).
 
 Rules:
     1. Movement: The player can move up (U), down (D), left (L), or right (R).
@@ -13,14 +17,21 @@ Restrictions:
     b. The player cannot move through boxes or walls.
 
 Illustration:
-	1. dashed grid: dock
-	2. yellow box: box on the dock (can also be pushed)
-	3. brown box: box on the floor
-    4. goal: push all the boxes onto the docks
+	1. '.': dock
+    2. '$': box
+	3. '*': box on the dock (can also be pushed)
+    4. '@': worker (or agent)
+    5. '+': worker on the dock
+    6. ' ': floor
+    7. '#': wall
 
 Instructions:
     1. Provide movement instructions using only the 4 letters: "L" (left), "R" (right), "U" (up), "D" (down).
     2. Use JSON as your output format: {"output": "L"} or {"output": "R"} or {"output": "U"} or  {"output": "D"}.
     3. If you think you are in an irreversible error state and want to restart the level, use： {“output”: "restart"}
+    4. This is a multi-turn conversation. The conversation history provided below may be helpful to you.
 
-Your answer:
+Conversation history:
+    {conversation_history_path}
+
+Your answer (single step):

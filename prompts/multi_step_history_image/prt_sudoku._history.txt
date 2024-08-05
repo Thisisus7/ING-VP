@@ -8,6 +8,10 @@ Rules:
 Instructions:
     1. The top left number is at row 0, column 0; the bottom right number is at row 8, column 8.
     2. Use JSON as your output format: {"output": {"{row}{column}": {number}}}.
-    3. The range of {row} and {column} are 0-8, the range of {number} is 1-9. 
+    3. The range of {row} and {column} are 0-8, the range of {number} is 1-9.  
+    4. This is a multi-turn conversation. The conversation history provided below may be helpful to you.
 
-Your answer:
+Conversation history:
+    {conversation_history_path}
+
+Your answer (single step):

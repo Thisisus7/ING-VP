@@ -86,7 +86,7 @@ def main():
         os.makedirs('outputs/one_step/eval/sudoku_results')
 
     for level in levels:
-        board = level['quiz']
+        board = level['position']
         solution = level['solutions']
         level_instructions = [item for item in instructions if item['level'] == level['level']]
 

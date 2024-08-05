@@ -22,7 +22,7 @@ def create_game_state(level, current_state=None):
         return current_state
 
     board_size = level['board_size']
-    first_queen = level['first']
+    first_queen = level['position']
     state = {
         'board_size': board_size,
         'queens': [first_queen]
@@ -136,7 +136,7 @@ def save_game_state_to_file(state, output_path, level, step):
         "game": "n_queens",
         "level": level,
         "board_size": state['board_size'],
-        "first": state['queens'][0],
+        "position": state['queens'][0],
         "step": step,
         "output": state['queens'][1:]
     }
@@ -157,8 +157,8 @@ def main(last_move, output_dir_base, model_name, step, levels, current_level=Non
                 if data['step'] == step - 1:
                     current_level = {
                         'board_size': data['board_size'],
-                        'first': data['first'],
-                        'queens': [data['first']] + data['output']
+                        'position': data['position'],
+                        'queens': [data['position']] + data['output']
                     }
                     break
 
