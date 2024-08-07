@@ -1,10 +1,16 @@
-import json
 import pygame
+import sys
+import json
 import os
+import re
 
-# Constants for the game
+# Initialize Pygame without display
+pygame.init()
+pygame.display.init()
+pygame.display.set_mode((1, 1))
+
+# Constants
 TILE_SIZE = 32
-MOVE_DELAY = 200  # Milliseconds between moves
 
 # Load images
 def load_images():
@@ -19,33 +25,63 @@ def load_images():
     }
     return images
 
-# Load levels from levels.txt
-def load_levels(filename='data/sokoban/levels_50.txt'):
-    with open(filename, 'r') as file:
-        levels = file.read().split(';')[1:]
-    parsed_levels = []
-    for level in levels:
-        level = [row for row in level.strip().split('\n') if row.strip()]
-        parsed_levels.append(level)
-    return parsed_levels
+# Function to create game state
+def create_game_state(level):
+    return [list(row) for row in level]
 
-# Parse JSONL moves
-def parse_moves(filename='outputs/one_step/models/formatted/sokoban.jsonl'):
-    with open(filename, 'r') as file:
-        moves = [json.loads(line) for line in file]
-    return moves
+def extract_move(input_string):
+    if input_string:
+        pattern = r'\{.*?\}'
+        match = re.search(pattern, input_string)
+        if match:
+            json_string = match.group(0)
+            try: 
+                move = json.loads(json_string)
+                return move["output"]
+            except Exception as e:
+                print(f"Error: {e}")
+    return None
 
-# Save evaluation results
-def save_eval_results(eval_results, filename='outputs/one_step/eval/sokoban.jsonl'):
-    with open(filename, 'w') as file:
-        for result in eval_results:
-            file.write(json.dumps(result) + '\n')
+def move_worker(state, directions):
+    for direction in directions:
+        # Find worker position
+        worker_pos = None
+        for y, row in enumerate(state):
+            for x, tile in enumerate(row):
+                if tile in ('@', '+'):
+                    worker_pos = (x, y)
+                    break
+            if worker_pos:
+                break
+        
+        if not worker_pos:
+            return state
+        
+        if direction not in ['U', 'D', 'L', 'R']:
+            continue  # Skip invalid directions
+        
+        dx, dy = {'U': (0, -1), 'D': (0, 1), 'L': (-1, 0), 'R': (1, 0)}[direction]
+        new_x, new_y = worker_pos[0] + dx, worker_pos[1] + dy
+        next_x, next_y = new_x + dx, new_y + dy
+        
+        if state[new_y][new_x] in (' ', '.'):
+            state[worker_pos[1]][worker_pos[0]] = ' ' if state[worker_pos[1]][worker_pos[0]] == '@' else '.'
+            state[new_y][new_x] = '@' if state[new_y][new_x] == ' ' else '+'
+        elif state[new_y][new_x] in ('$', '*') and state[next_y][next_x] in (' ', '.'):
+            state[worker_pos[1]][worker_pos[0]] = ' ' if state[worker_pos[1]][worker_pos[0]] == '@' else '.'
+            state[new_y][new_x] = '@' if state[new_y][new_x] == '$' else '+'
+            state[next_y][next_x] = '$' if state[next_y][next_x] == ' ' else '*'
+    
+    return state
 
-# Initialize Pygame
-pygame.init()
-
-def draw_level(level, images, screen):
-    for y, row in enumerate(level):
+# Function to draw the game state and save it as an image
+def draw_game_state(state, output_path):
+    images = load_images()
+    height = len(state)
+    width = len(state[0])
+    screen = pygame.Surface((width * TILE_SIZE, height * TILE_SIZE))
+    
+    for y, row in enumerate(state):
         for x, tile in enumerate(row):
             if tile == '#':
                 screen.blit(images['wall'], (x * TILE_SIZE, y * TILE_SIZE))
@@ -61,100 +97,56 @@ def draw_level(level, images, screen):
                 screen.blit(images['worker_dock'], (x * TILE_SIZE, y * TILE_SIZE))
             else:
                 screen.blit(images['floor'], (x * TILE_SIZE, y * TILE_SIZE))
+    
+    pygame.image.save(screen, output_path)
 
-def move_worker(level, direction):
-    # Find worker position
-    for y, row in enumerate(level):
-        for x, tile in enumerate(row):
-            if tile in ('@', '+'):
-                worker_pos = (x, y)
-                break
+# Function to save game state to a text file
+def save_game_state_to_file(state, output_path):
+    with open(output_path, 'w') as f:
+        for row in state:
+            f.write(''.join(row) + '\n')
 
-    dx, dy = 0, 0
-    if direction == 'U':
-        dy = -1
-    elif direction == 'D':
-        dy = 1
-    elif direction == 'L':
-        dx = -1
-    elif direction == 'R':
-        dx = 1
+# Function to evaluate moves, calculate results, and manage output
+def evaluate_moves(levels, moves, model_name, output_base_dir):
+    is_valid = False
 
-    new_x, new_y = worker_pos[0] + dx, worker_pos[1] + dy
-    next_x, next_y = new_x + dx, new_y + dy
+    level_num = moves['level']
+    level = levels[level_num - 1]
 
-    def is_floor_or_dock(tile):
-        return tile in ('.', ' ')
+    state = create_game_state(level)
+    directions = extract_move(moves['output'])
+    if directions:
+        state = move_worker(state, directions)
 
-    if level[new_y][new_x] in (' ', '.'):
-        # Move worker to the new position
-        level[worker_pos[1]][worker_pos[0]] = ' ' if level[worker_pos[1]][worker_pos[0]] == '@' else '.'
-        level[new_y][new_x] = '@' if level[new_y][new_x] == ' ' else '+'
-    elif level[new_y][new_x] in ('$','*'):
-        # Move box and worker if possible
-        if is_floor_or_dock(level[next_y][next_x]):
-            level[worker_pos[1]][worker_pos[0]] = ' ' if level[worker_pos[1]][worker_pos[0]] == '@' else '.'
-            level[new_y][new_x] = '@' if level[new_y][new_x] == '$' else '+'
-            level[next_y][next_x] = '$' if level[next_y][next_x] == ' ' else '*'
+    # Save intermediate states
+    image_dir = os.path.join(output_base_dir, "process_images",  model_name, "sokoban")
+    level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "sokoban")
+    os.makedirs(image_dir, exist_ok=True)
+    os.makedirs(level_dir, exist_ok=True)
+    image_path = os.path.join(image_dir, f"level_{level_num}.png")
+    level_path = os.path.join(level_dir, f"level_{level_num}.txt")
 
-def run_game():
-    levels = load_levels()
-    moves = parse_moves()
-    images = load_images()
-    eval_results = []
+    draw_game_state(state, image_path)
+    save_game_state_to_file(state, level_path)
 
-    if not os.path.exists('outputs/one_step/eval/sokoban_results'):
-        os.makedirs('outputs/one_step/eval/sokoban_results')
+    is_valid = all('$' not in row for row in state)
 
-    for move in moves:
-        level_index = move['level'] - 1
-        move_sequence = move['output']
-        model_name = move['model']
-        level = [list(row) for row in levels[level_index]]
+    result = {
+        "model": model_name,
+        "level": level_num,
+        "output": directions,
+        "is_valid": is_valid,
+    }
 
-        # Set screen size based on level dimensions
-        screen_width = max(len(row) for row in level) * TILE_SIZE
-        screen_height = len(level) * TILE_SIZE
-        screen = pygame.display.set_mode((screen_width, screen_height))
-        pygame.display.set_caption(f'Sokoban - Level {move["level"]} - Model {model_name}')
-        clock = pygame.time.Clock()
+    return result
 
-        # If no move sequence, just save the initial state
-        if not move_sequence:
-            image_path = f'outputs/one_step/eval/sokoban_results/level_{move["level"]}_model_{model_name}.png'
-            draw_level(level, images, screen)
-            pygame.display.flip()
-            pygame.image.save(screen, image_path)
-            eval_results.append({
-                "level": move['level'],
-                "model": model_name,
-                "output": move_sequence,
-                "is_valid": False,  # No moves made, so not valid
-                "image": image_path
-            })
-            continue
+def main(move, output_dir_base, model_name, levels):
+    result = evaluate_moves(levels, move, model_name, output_dir_base)
 
-        for direction in move_sequence:
-            move_worker(level, direction)
-            draw_level(level, images, screen)
-            pygame.display.flip()
-            pygame.time.delay(MOVE_DELAY)
+    eval_dir = os.path.join(output_dir_base, "eval",  model_name)
+    os.makedirs(eval_dir, exist_ok=True)
+    eval_path = os.path.join(eval_dir, "sokoban.jsonl")
 
-        # Save final level state
-        image_path = f'outputs/one_step/eval/sokoban_results/level_{move["level"]}_model_{model_name}.png'
-        pygame.image.save(screen, image_path)
-
-        # Example evaluation (you can expand this to be more complex)
-        eval_results.append({
-            "level": move['level'],
-            "model": model_name,
-            "output": move_sequence,
-            "is_valid": all('$' not in row for row in level),  # Level is valid if no boxes ('$') are left
-            "image": image_path
-        })
-
-    save_eval_results(eval_results)
-
-if __name__ == "__main__":
-    run_game()
-    pygame.quit()
+    with open(eval_path, 'a') as f:  # Append to the file
+        json.dump(result, f)
+        f.write('\n')

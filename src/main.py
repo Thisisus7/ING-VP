@@ -2,7 +2,6 @@ import os
 import sys
 sys.dont_write_bytecode = True
 import json
-import torch
 import argparse
 
 from model import QwenVLChatInferencer, BLIP2Inferencer
@@ -37,7 +36,6 @@ def load_levels(filename):
         if current_level:
             levels.append(current_level)
     
-    print(f"Loaded {len(levels)} levels")
     return levels
 
 # Load the prompt template from a file
@@ -146,17 +144,14 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
         last_move = json.loads(f.readlines()[-1])
 
     # Call the appropriate function based on game_name
-    if game_name in game_functions:
-        is_valid, updated_level = game_functions[game_name](
-            last_move=last_move,
-            output_dir_base=output_dir,
-            model_name=model_name,
-            step=step,
-            levels=levels,
-            current_level=current_level
-        )
-    else:
-        raise ValueError(f"Unknown game name: {game_name}")
+    is_valid, updated_level = game_functions[game_name](
+        last_move=last_move,
+        output_dir_base=output_dir,
+        model_name=model_name,
+        step=step,
+        levels=levels,
+        current_level=current_level
+    )
 
     return is_valid, updated_level
 

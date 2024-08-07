@@ -2,45 +2,22 @@ import pygame
 import sys
 import json
 import os
+import re
 
-# Initialize Pygame
-pygame.init()
+# Initialize Pygame without display
+pygame.display.init()
+pygame.display.set_mode((1, 1))
 
-# Color
+# Color definitions
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
-# Cell size
+# Cell size for the maze
 CELL_SIZE = 30
 
-# Read level file
-def load_levels(filename):
-    levels = []
-    with open(filename, 'r') as f:
-        current_level = []
-        for line in f:
-            line = line.strip()
-            if line.startswith(';'):
-                if current_level:
-                    levels.append(current_level)
-                    current_level = []
-            elif line:  # add non-empty line only
-                current_level.append(line)
-        if current_level:
-            levels.append(current_level)
-    return levels
-
-# Read movement
-def load_moves(filename):
-    moves = []
-    with open(filename, 'r') as f:
-        for line in f:
-            moves.append(json.loads(line))
-    return moves
-
-# Create maze
+# Function to create maze in list of list
 def create_maze(level):
     maze = []
     start_pos = None
@@ -49,132 +26,124 @@ def create_maze(level):
         maze_row = []
         for x, cell in enumerate(row):
             if cell == '+':
-                maze_row.append(1)
+                maze_row.append('+')
             elif cell == ' ':
-                maze_row.append(0)
+                maze_row.append(' ')
             elif cell == 'S':
-                maze_row.append(0)
                 start_pos = (x, y)
+                maze_row.append('S')
             elif cell == 'X':
-                maze_row.append(0)
                 end_pos = (x, y)
+                maze_row.append('X')
         maze.append(maze_row)
     return maze, start_pos, end_pos
 
-# Draw maze
-def draw_maze(screen, maze, agent_pos, end_pos):
-    screen.fill(WHITE)
+def extract_moves(input_string):
+    if input_string:
+        pattern = r'\{.*?\}'
+        match = re.search(pattern, input_string)
+        if match:
+            json_string = match.group(0)
+            try: 
+                move = json.loads(json_string)
+                return move["output"]
+            except Exception as e:
+                print(f"Error: {e}")
+    return None
+
+# Function to move the agent within the maze
+def move_agent(maze, agent_pos, moves):
+    x, y = agent_pos
+
+    for move in moves:
+        if move == 'U' and y > 0 and maze[y - 1][x] == ' ':
+            y -= 1
+        elif move == 'D' and y + 1 < len(maze) and maze[y + 1][x] == ' ':
+            y += 1
+        elif move == 'L' and x > 0 and maze[y][x - 1] == ' ':
+            x -= 1
+        elif move == 'R' and x + 1 < len(maze[y]) and maze[y][x + 1] == ' ':
+            x += 1
+    
+    return (x, y)
+
+def update_maze(maze, old_pos, new_pos, end_pos):
+    if old_pos != new_pos:
+        maze[old_pos[1]][old_pos[0]] = ' '
+    if new_pos == end_pos:
+        maze[new_pos[1]][new_pos[0]] = 'X'
+    else:
+        maze[new_pos[1]][new_pos[0]] = 'S'
+
+    return maze
+
+# Function to draw the maze and save it as an image
+def draw_maze(maze, output_path):
+    height = len(maze)
+    width = len(maze[0])
+    screen = pygame.Surface((width * CELL_SIZE, height * CELL_SIZE))
+    screen.fill(WHITE)  # Fill the background with white
     for y, row in enumerate(maze):
         for x, cell in enumerate(row):
-            if cell == 1:
-                pygame.draw.rect(screen, BLACK, (x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE))
-    
-    # Draw destination
-    pygame.draw.rect(screen, GREEN, (end_pos[0]*CELL_SIZE, end_pos[1]*CELL_SIZE, CELL_SIZE, CELL_SIZE))
-    
-    # Draw agent
-    pygame.draw.rect(screen, RED, (agent_pos[0]*CELL_SIZE, agent_pos[1]*CELL_SIZE, CELL_SIZE, CELL_SIZE))
-    
-    pygame.display.flip()
+            if cell == '+':
+                pygame.draw.rect(screen, BLACK, pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            elif cell == 'S':
+                pygame.draw.rect(screen, RED, pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            elif cell == 'X':
+                pygame.draw.rect(screen, GREEN, pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+    pygame.image.save(screen, output_path)
 
-# Move agent
-def move_agent(maze, agent_pos, move):
-    x, y = agent_pos
-    if move == 'U' and y > 0 and y-1 < len(maze) and x < len(maze[y-1]) and maze[y-1][x] == 0:
-        return (x, y-1)
-    elif move == 'D' and y+1 < len(maze) and x < len(maze[y+1]) and maze[y+1][x] == 0:
-        return (x, y+1)
-    elif move == 'L' and x > 0 and maze[y][x-1] == 0:
-        return (x-1, y)
-    elif move == 'R' and x+1 < len(maze[y]) and maze[y][x+1] == 0:
-        return (x+1, y)
-    return agent_pos
+# Function to save level to a text file
+def save_maze_to_file(maze, output_path):
+    with open(output_path, 'w') as f:
+        for row in maze:
+            f.write(''.join(row) + '\n')
 
-# Main game loop
-def play_game(levels, moves):
-    results = []
-    for move in moves:
-        level_num = move['level']
-        move_sequence = move['output']
-        model_name = move['model']
-        level = levels[level_num - 1]
-        maze, start_pos, end_pos = create_maze(level)
-        agent_pos = start_pos
+# Function to evaluate moves, calculate results, and manage output
+def evaluate_moves(levels, moves, model_name, output_base_dir):
+    is_valid = False
 
-        # Screen size
-        width = len(maze[0]) * CELL_SIZE
-        height = len(maze) * CELL_SIZE
-        screen = pygame.display.set_mode((width, height))
-        pygame.display.set_caption(f"Maze Level {level_num} - Model {model_name}")
+    level_num = moves['level']
+    level = levels[level_num - 1]
 
+    maze, start_pos, end_pos = create_maze(level)
+    extract_move = extract_moves(moves['output'])
+    if extract_move:
+        new_pos = move_agent(maze, start_pos, extract_move)   
+        maze = update_maze(maze, start_pos, new_pos, end_pos)  
+    else:
+        new_pos = start_pos
+
+    # Save intermediate states
+    image_dir = os.path.join(output_base_dir, "process_images",  model_name, "maze")
+    level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "maze")
+    os.makedirs(image_dir, exist_ok=True)
+    os.makedirs(level_dir, exist_ok=True)
+    image_path = os.path.join(image_dir, f"level_{level_num}.png")
+    level_path = os.path.join(level_dir, f"level_{level_num}.txt")
+
+    draw_maze(maze, image_path)
+    save_maze_to_file(maze, level_path)
+
+    if new_pos == end_pos:
         is_valid = True
 
-        draw_maze(screen, maze, agent_pos, end_pos)  # Initial draw
+    result = {
+        "model": model_name,
+        "level": level_num,
+        "output": extract_move,
+        "is_valid": is_valid,
+    }
 
-        # If no move sequence, just save the initial state
-        if not move_sequence:
-            image_path = f"outputs/one_step/eval/maze_results/level_{level_num}_model_{model_name}.png"
-            pygame.image.save(screen, image_path)
-            results.append({
-                "level": level_num,
-                "model": model_name,
-                "output": move_sequence,
-                "is_valid": False,  # No moves made, so not valid
-                "image": image_path
-            })
-            continue
+    return result
 
-        for move in move_sequence:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+def main(move, output_dir_base, model_name, levels):
+    result = evaluate_moves(levels, move, model_name, output_dir_base)
 
-            new_pos = move_agent(maze, agent_pos, move)
-            if new_pos == agent_pos:
-                is_valid = False
-                break
-            agent_pos = new_pos
-            draw_maze(screen, maze, agent_pos, end_pos)
-            pygame.time.wait(100)  # Watch
+    eval_dir = os.path.join(output_dir_base, "eval",  model_name)
+    os.makedirs(eval_dir, exist_ok=True)
+    eval_path = os.path.join(eval_dir, "maze.jsonl")
 
-        if agent_pos != end_pos:
-            is_valid = False
-
-        # Save last frame
-        if not os.path.exists("outputs/one_step/eval/maze_results"):
-            os.makedirs("outputs/one_step/eval/maze_results")
-        image_path = f"outputs/one_step/eval/maze_results/level_{level_num}_model_{model_name}.png"
-        pygame.image.save(screen, image_path)
-
-        results.append({
-            "level": level_num,
-            "model": model_name,
-            "output": move_sequence,
-            "is_valid": is_valid,
-            "image": image_path
-        })
-
-    return results
-
-# Save results
-def save_results(results):
-    with open("outputs/one_step/eval/maze.jsonl", 'w') as f:
-        for result in results:
-            json.dump(result, f)
-            f.write('\n')
-
-# Main
-def main():
-    if not os.path.exists("outputs/one_step/eval/maze_results"):
-        os.makedirs("outputs/one_step/eval/maze_results")
-    if not os.path.exists("outputs/one_step/eval"):
-        os.makedirs("outputs/one_step/eval")
-
-    levels = load_levels("data/maze/levels_50.txt")
-    moves = load_moves(r"outputs\one_step\models\formatted\maze.jsonl")
-    results = play_game(levels, moves)
-    save_results(results)
-
-if __name__ == "__main__":
-    main()
+    with open(eval_path, 'a') as f:  # Append to the file
+        json.dump(result, f)
+        f.write('\n')

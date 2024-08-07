@@ -69,15 +69,17 @@ GAMES = [
 ]
 
 # MODELS = ["blip2", "qwen_vl_chat"]
+MODELS = ["qwen_vl_chat"]
 MODELS = ["blip2"]
 
 # Configuration for inference levels and output directory
 START_LEVEL = 3
-END_LEVEL = 3
+END_LEVEL = 4
 MAX_STEPS = 50
 
 # one step
-OUTPUT_OS_DIR = "outputs/one_step/models/raw"
+OUTPUT_OS_DIR = "outputs/one_step/image_text"
+OUTPUT_TEXT_OS_DIR = "outputs/one_step/text_only"
 # multi step
 OUTPUT_IMAGE_BASE_DIR = "outputs/multi_step/image_text/base"
 OUTPUT_IMAGE_HIS_DIR = "outputs/multi_step/image_text/history"
