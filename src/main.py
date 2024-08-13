@@ -114,6 +114,7 @@ def inference(game, model_name, inferencer, levels, use_history, use_text):
             output = inferencer.infer(current_prompt, image_path)
 
             save_output(level_output_path, model_name, game["name"], level, step, output)
+            # save_output(level_output_path, model_name, game["name"], level, step, output)
 
             # Evaluate the game with the model output
             current_level = level_states.get(level) if step > 1 else None

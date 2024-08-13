@@ -57,7 +57,7 @@ def draw_game_state(state, output_path, added_positions):
 
 def extract_move(input_string):
     if input_string:
-        pattern = r'\{.*?\}'
+        pattern = r'\{((?:[^{}]|\{[^{}]*\})*)\}'
         match = re.search(pattern, input_string)
         if match:
             json_string = match.group(0)

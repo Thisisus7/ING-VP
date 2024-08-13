@@ -69,12 +69,11 @@ GAMES = [
 ]
 
 # MODELS = ["blip2", "qwen_vl_chat"]
-MODELS = ["qwen_vl_chat"]
 MODELS = ["blip2"]
 
 # Configuration for inference levels and output directory
 START_LEVEL = 3
-END_LEVEL = 4
+END_LEVEL = 3
 MAX_STEPS = 50
 
 # one step

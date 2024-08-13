@@ -67,9 +67,12 @@ def draw_game_state(state, output_path):
     pygame.image.save(screen, output_path)
 
 def is_valid_move(state, source, destination):
-    if not state[source]:
+    print(f"state: {state}")
+    if not source in state or not destination in state:                    # if not A, B, C, D
         return False
-    if state[destination] and state[source][-1] > state[destination][-1]:
+    if not state[source]:                                                  # if no element in source
+        return False
+    if state[destination] and state[source][-1] < state[destination][-1]:  # if source < destination
         return False
     return True
 
@@ -117,7 +120,9 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
 
     state = create_game_state(level, current_state)
 
-    extract_move_result = extract_move(last_move['output'])
+    dummy_output = "{\"output\": \"CD\"}"
+    extract_move_result = extract_move(dummy_output)
+    # extract_move_result = extract_move(last_move['output'])
     if extract_move_result:
         source, destination = extract_move_result
         if is_valid_move(state, source, destination):

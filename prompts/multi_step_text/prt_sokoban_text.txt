@@ -28,6 +28,5 @@ Illustration:
 Instructions:
     1. Provide movement instructions using only the 4 letters: "L" (left), "R" (right), "U" (up), "D" (down).
     2. Use JSON as your output format: {"output": "L"} or {"output": "R"} or {"output": "U"} or  {"output": "D"}.
-    3. If you think you are in an irreversible error state and want to restart the level, use： {“output”: "restart"}
 
 Your answer (single step):

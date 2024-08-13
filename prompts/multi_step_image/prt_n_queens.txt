@@ -11,7 +11,6 @@ Instructions:
     2. The coordinate range is from 0 to 7.
     3. The position of the first queen (red color) is already given, so do not include it in your answer.
     4. Output the coordinates of each queen one at a time in the JSON format: {"output": [row, col]}
-    5. If you think you are in an irreversible error state and want to restart the level, use： {“output”: "restart"}
-    6. If your chess piece violates the three rules, it will be ignored.
+    5. If your chess piece violates the three rules, it will be ignored.
 
 Your answer (single step):

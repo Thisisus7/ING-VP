@@ -48,9 +48,12 @@ def extract_move(input_string):
     return None
 
 def is_valid_move(state, source, destination):
-    if not state[source]:
+    print(f"state: {state}")
+    if not source in state or not destination in state:                    # if not A, B, C, D
         return False
-    if state[destination] and state[source][-1] > state[destination][-1]:
+    if not state[source]:                                                  # if no element in source
+        return False
+    if state[destination] and state[source][-1] < state[destination][-1]:  # if source < destination
         return False
     return True
 
