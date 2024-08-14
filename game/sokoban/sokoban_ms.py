@@ -109,20 +109,29 @@ def extract_move(input_string):
                 print(f"Error: {e}")
     return None
 
+def back_to_step(direction, step_states, state):
+    previous_state = step_states.get(direction)
+    if previous_state:
+        return previous_state
+    else:
+        return state
+
 # Function to evaluate moves, calculate results, and manage output
-def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state=None):
+def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state, step_states):
     results = []
     is_valid = False
 
     level_num = last_move['level']
     level = levels[level_num - 1]
-    print(f"Processing level {level_num}, step {step}")
+    print(f"Processing model {model_name}, sokoban, level {level_num}, step {step}")
 
     state = create_game_state(level, current_state)
-
     direction = extract_move(last_move['output'])
     if direction:
-        state = move_worker(state, direction)
+        if isinstance(direction, int):
+            state = back_to_step(direction, step_states, state)
+        else:
+            state = move_worker(state, direction)
 
     # Save intermediate states
     image_dir = os.path.join(output_base_dir, "process_images",  model_name, "sokoban", f"level_{level_num}")
@@ -148,8 +157,8 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
 
     return results, is_valid, state
 
-def main(last_move, output_dir_base, model_name, step, levels, current_level=None):
-    results, is_valid, updated_state = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level)
+def main(last_move, output_dir_base, model_name, step, levels, current_level, step_states):
+    results, is_valid, updated_state = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level, step_states)
 
     if not results:
         print("No valid results found.")

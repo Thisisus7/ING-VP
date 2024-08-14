@@ -121,7 +121,7 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
 
     level_num = last_move['level']
     level = levels[level_num - 1]
-    print(f"Processing level {level_num}, step {step}")
+    print(f"Processing model {model_name}, maze, level {level_num}, step {step}")
 
     if step == 1 or current_maze is None:
         maze, start_pos, end_pos = create_maze(level)

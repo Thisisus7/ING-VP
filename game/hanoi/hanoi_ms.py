@@ -116,7 +116,7 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     else:
         # For subsequent steps, use the current_state directly
         state = current_state
-    print(f"Processing level {level_num}, step {step}")
+    print(f"Processing model {model_name}, hanoi, level {level_num}, step {step}")
 
     state = create_game_state(level, current_state)
 

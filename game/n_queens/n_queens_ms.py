@@ -79,20 +79,30 @@ def extract_coordinates(input_string):
                 print(f"Error: {e}")
     return None
 
-def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state=None):
+def back_to_step(extracted_move, step_states, state):
+    previous_state = step_states.get(extracted_move)
+    if previous_state:
+        return previous_state
+    else:
+        return state
+
+def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state, step_states):
     results = []
     is_valid = False
 
     level_num = last_move['level']
     levels = [json.loads(json_str) for json_str in levels[0]]  # convert string to dict
     level = next(l for l in levels if l['level'] == level_num)
-    print(f"Processing level {level_num}, step {step}")
+    print(f"Processing model {model_name}, n_queens, level {level_num}, step {step}")
 
     state = create_game_state(level, current_state)
-
+    print(f"state: {state}")
+    print(f"step_states: {step_states}")
     extract_move = extract_coordinates(last_move['output'])
     if extract_move and is_valid_move(state['queens'], extract_move):
         state['queens'].append(extract_move)
+    elif extract_move and isinstance(extract_move, int):
+        state['queen'] = back_to_step(extract_move, step_states, state['queen'])
 
     # Save intermediate states
     image_dir = os.path.join(output_base_dir, "process_images",  model_name, "n_queens", f"level_{level_num}")
@@ -146,7 +156,7 @@ def save_game_state_to_file(state, output_path, level, step):
         f.write('\n')
 
 
-def main(last_move, output_dir_base, model_name, step, levels, current_level=None):
+def main(last_move, output_dir_base, model_name, step, levels, current_level, step_states):
     if step > 1 and current_level is None:
         # Load the previous state from the process_levels file
         level_num = last_move['level']
@@ -162,7 +172,7 @@ def main(last_move, output_dir_base, model_name, step, levels, current_level=Non
                     }
                     break
 
-    results, is_valid, updated_state = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level)
+    results, is_valid, updated_state = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level, step_states)
 
     if not results:
         print("No valid results found.")

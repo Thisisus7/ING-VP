@@ -79,20 +79,31 @@ def update_game_state(state, move):
     state['current_board'] = ''.join(new_board)
     return state, added_positions
 
-def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state=None):
+def back_to_step(extracted_move, step_states, state):
+    previous_state = step_states.get(extracted_move)
+    if previous_state:
+        return previous_state
+    else:
+        return state
+
+def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state, step_states):
     results = []
     is_valid = False
 
     level_num = last_move['level']
     level = json.loads(levels[0][level_num-1])
     # level = next(l for l in json.loads(levels[0]) if l['level'] == level_num)
-    print(f"Processing level {level_num}, step {step}")
+    print(f"Processing model {model_name}, sudoku, level {level_num}, step {step}")
 
     state = create_game_state(level, current_state)
 
     extracted_move = extract_move(last_move['output'])
     if extracted_move:
-        state, added_positions = update_game_state(state, extracted_move)
+        if isinstance(extracted_move, int):
+            state = back_to_step(extracted_move, step_states, state)
+            added_positions = set()
+        else:
+            state, added_positions = update_game_state(state, extracted_move)
     else:
         added_positions = set()
 
@@ -137,7 +148,7 @@ def save_game_state_to_file(state, output_path, level, step, output):
         json.dump(data, f)
         f.write('\n')
 
-def main(last_move, output_dir_base, model_name, step, levels, current_level=None):    
+def main(last_move, output_dir_base, model_name, step, levels, current_level, step_states):    
     if step > 1 and current_level is None:
         # Load the previous state from the process_levels file
         level_num = last_move['level']
@@ -154,7 +165,7 @@ def main(last_move, output_dir_base, model_name, step, levels, current_level=Non
                     }
                     break
 
-    results, is_valid, updated_state = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level)
+    results, is_valid, updated_state = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level, step_states)
 
     if not results:
         print("No valid results found.")

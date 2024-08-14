@@ -88,6 +88,7 @@ def inference(game, model_name, inferencer, levels, use_history, use_text):
         is_valid = False
         level_output_path = os.path.join(output_dir, "models", model_name, game["name"], f"level_{level}.jsonl")
 
+        step_states = {}
         while step <= MAX_STEPS and not is_valid:
             if step == 1:
                 if use_text:  # use text
@@ -114,13 +115,13 @@ def inference(game, model_name, inferencer, levels, use_history, use_text):
             output = inferencer.infer(current_prompt, image_path)
 
             save_output(level_output_path, model_name, game["name"], level, step, output)
-            # save_output(level_output_path, model_name, game["name"], level, step, output)
 
             # Evaluate the game with the model output
             current_level = level_states.get(level) if step > 1 else None
-            is_valid, updated_level = evaluation(game["name"], level, model_name, level_output_path, step, levels, current_level, output_dir)
+            is_valid, updated_level = evaluation(game["name"], level, model_name, level_output_path, step, levels, current_level, output_dir, step_states)
 
             level_states[level] = updated_level
+            step_states[step] = updated_level
             
             if is_valid:
                 break
@@ -130,7 +131,7 @@ def inference(game, model_name, inferencer, levels, use_history, use_text):
     level_states.clear()
 
 # Function to evaluate the game using the model output
-def evaluation(game_name, level, model_name, moves_path, step, levels, current_level, output_dir):
+def evaluation(game_name, level, model_name, moves_path, step, levels, current_level, output_dir, step_states):
     game_functions = {
         "maze": maze_ms.main,
         "sokoban": sokoban_ms.main,
@@ -151,7 +152,8 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
         model_name=model_name,
         step=step,
         levels=levels,
-        current_level=current_level
+        current_level=current_level,
+        step_states = step_states,
     )
 
     return is_valid, updated_level

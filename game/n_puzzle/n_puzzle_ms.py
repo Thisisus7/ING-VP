@@ -143,7 +143,7 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     else:
         # For subsequent steps, use the current_state directly
         state = current_state
-    print(f"Processing level {level_num}, step {step}")
+    print(f"Processing model {model_name}, n_puzzle, level {level_num}, step {step}")
 
     extract_move_result = extract_move(last_move['output'])
     if extract_move_result is not None and is_valid_move(state, extract_move_result):
