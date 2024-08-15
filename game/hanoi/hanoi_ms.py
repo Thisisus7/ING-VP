@@ -154,7 +154,7 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     return results, is_valid, state
 
 # Main function (placeholder for now)
-def main(last_move, output_dir_base, model_name, step, levels, current_level=None):
+def main(last_move, output_dir_base, model_name, step, levels, current_level, step_states):
     
     if step > 1 and current_level is None:
         # Load the previous state from the process_levels file

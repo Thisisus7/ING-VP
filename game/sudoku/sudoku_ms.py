@@ -66,6 +66,7 @@ def extract_move(input_string):
                 return move["output"]
             except Exception as e:
                 print(f"Error: {e}")
+    return None
 
 def update_game_state(state, move):
     added_positions = set()
@@ -86,6 +87,18 @@ def back_to_step(extracted_move, step_states, state):
     else:
         return state
 
+def is_valid_move(extracted_move):
+    key = list(extracted_move.keys())[0]
+    value = list(extracted_move.values())[0]
+    if not key.isdigit() or len(key) != 2:
+        return False
+    if not isinstance(value, int):
+        return False
+    if int(key[0]) > 8 or int(key[1]) > 8 or value > 9 or value < 1:
+        return False
+    
+    return True
+
 def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state, step_states):
     results = []
     is_valid = False
@@ -97,13 +110,16 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
 
     state = create_game_state(level, current_state)
 
-    extracted_move = extract_move(last_move['output'])
+    # extracted_move = extract_move(last_move['output'])
+    extracted_move = extract_move("{\"output\": {\"56\": 10}}")
     if extracted_move:
         if isinstance(extracted_move, int):
             state = back_to_step(extracted_move, step_states, state)
             added_positions = set()
-        else:
+        elif is_valid_move(extracted_move):
             state, added_positions = update_game_state(state, extracted_move)
+        else:
+            added_positions = set()
     else:
         added_positions = set()
 

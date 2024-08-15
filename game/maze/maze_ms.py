@@ -115,7 +115,7 @@ def extract_moves(input_string):
     return None
 
 # Function to evaluate moves, calculate results, and manage output
-def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_maze=None):
+def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_maze):
     results = []
     is_valid = False  # Initialize is_valid
 
@@ -163,7 +163,7 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
 
     return results, is_valid, maze
 
-def main(last_move, output_dir_base, model_name, step, levels, current_level=None):
+def main(last_move, output_dir_base, model_name, step, levels, current_level, step_states):
     results, is_valid, updated_maze = evaluate_moves(levels, last_move, model_name, output_dir_base, step, current_level)
 
     if not results:

@@ -71,11 +71,15 @@ def save_game_state_to_file(state, output_path, level, step, model):
         f.write('\n')
 
 def is_valid_move(state, tile):
+    if not isinstance(tile, int):  # tile should be an integer
+        return False    
+    if tile > 15:                  # tile should less than 16
+        return False
+
     n = state['n']
     position = state['position']
     zero_row, zero_col = None, None
     tile_row, tile_col = None, None
-    
     # Find the empty tile (0) and the tile to be moved
     for row in range(n):
         for col in range(n):
@@ -83,7 +87,6 @@ def is_valid_move(state, tile):
                 zero_row, zero_col = row, col
             elif position[row][col] == tile:
                 tile_row, tile_col = row, col
-    
     # Check if the tile is adjacent to the empty space
     if (abs(zero_row - tile_row) == 1 and zero_col == tile_col) or \
        (abs(zero_col - tile_col) == 1 and zero_row == tile_row):
@@ -131,7 +134,7 @@ def validate_solution(state):
     flattened = [num for row in position for num in row]
     return flattened == expected
 
-def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state=None):
+def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state):
     results = []
     is_valid = False
 
@@ -146,7 +149,7 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     print(f"Processing model {model_name}, n_puzzle, level {level_num}, step {step}")
 
     extract_move_result = extract_move(last_move['output'])
-    if extract_move_result is not None and is_valid_move(state, extract_move_result):
+    if extract_move_result and is_valid_move(state, extract_move_result):
         state = apply_move(state, extract_move_result)
 
     # Save intermediate states
@@ -174,7 +177,7 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     return results, is_valid, state
 
 # Main function (placeholder for now)
-def main(last_move, output_dir_base, model_name, step, levels, current_level=None):    
+def main(last_move, output_dir_base, model_name, step, levels, current_level, step_states):    
     if step > 1 and current_level is None:
         # Load the previous state from the process_levels file
         level_num = last_move['level']

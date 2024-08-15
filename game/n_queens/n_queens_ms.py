@@ -49,6 +49,8 @@ def draw_game_state(state, output_path):
     pygame.image.save(screen, output_path)
 
 def is_valid_move(queens, new_queen):
+    if not isinstance(new_queen[0], int) or not isinstance(new_queen[1], int):
+        return False
     if not(new_queen[0] < 8 and new_queen[1] < 8):
         return False
     for queen in queens:
@@ -96,8 +98,6 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     print(f"Processing model {model_name}, n_queens, level {level_num}, step {step}")
 
     state = create_game_state(level, current_state)
-    print(f"state: {state}")
-    print(f"step_states: {step_states}")
     extract_move = extract_coordinates(last_move['output'])
     if extract_move and is_valid_move(state['queens'], extract_move):
         state['queens'].append(extract_move)
