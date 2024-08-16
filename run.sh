@@ -1,11 +1,39 @@
 #!/bin/bash
+LOG_DIR="logs"
+mkdir -p "$LOG_DIR"
+MODEL="gemini_15_pro" 
 
-# Define the path to the Python script and the log file
-SCRIPT_PATH="ML-A100/team/mm/zhangge/Vl-Bench/src/main.py"
-LOG_PATH="ML-A100/team/mm/zhangge/Vl-Bench/output.log"
+MODES=("base_image" "history_image" "base_text" "history_text")
 
-# Ensure the script has executable permissions
-chmod +x $SCRIPT_PATH
+for MODE in "${MODES[@]}"; do
+    OUTPUT_IMAGE_BASE_DIR="outputs/multi_step/image_text/base"
+    OUTPUT_IMAGE_HIS_DIR="outputs/multi_step/image_text/history"
+    OUTPUT_TEXT_BASE_DIR="outputs/multi_step/text_only/base"
+    OUTPUT_TEXT_HIS_DIR="outputs/multi_step/text_only/history"
 
-# Run the script using nohup to ensure it runs in the background
-nohup python3 $SCRIPT_PATH > $LOG_PATH 2>&1 &
+    if [[ "$MODE" == "base_image" ]]; then
+        OUTPUT_DIR="$OUTPUT_IMAGE_BASE_DIR"
+        USE_HISTORY=false
+        USE_TEXT=false
+    elif [[ "$MODE" == "history_image" ]]; then
+        OUTPUT_DIR="$OUTPUT_IMAGE_HIS_DIR"
+        USE_HISTORY=true
+        USE_TEXT=false
+    elif [[ "$MODE" == "base_text" ]]; then
+        OUTPUT_DIR="$OUTPUT_TEXT_BASE_DIR"
+        USE_HISTORY=false
+        USE_TEXT=true
+    elif [[ "$MODE" == "history_text" ]]; then
+        OUTPUT_DIR="$OUTPUT_TEXT_HIS_DIR"
+        USE_HISTORY=true
+        USE_TEXT=true
+    else
+        echo "无效的 mode: $MODE"
+        exit 1
+    fi
+
+    mkdir -p "$OUTPUT_DIR/$LOG_DIR"
+    LOG_FILE="$OUTPUT_DIR/$LOG_DIR/${MODE}_${MODEL}.log"
+    
+    python3 src/main.py --mode "$MODE" --model "$MODEL" > "$LOG_FILE" 2>&1
+done

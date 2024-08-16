@@ -1,7 +1,9 @@
 import torch
+import base64
 from transformers import AutoModelForCausalLM, AutoTokenizer, Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig
 from PIL import Image
 from abc import ABC, abstractmethod
+from openai import OpenAI
 
 class ModelInferencer(ABC):
     
@@ -52,3 +54,93 @@ class BLIP2Inferencer(ModelInferencer):
             generation = self.model.generate(**inputs, max_new_tokens=300)
             result = self.processor.decode(generation[0], skip_special_tokens=True).strip()
         return result
+
+
+class APIInferencer(ABC):
+    @abstractmethod
+    def infer(self, prompt: str, image_path: str) -> str:
+        pass
+
+    def load_client(self):
+        return OpenAI(
+            api_key='e2e09c3b97c9b3bd22621c808c0dda38',
+            base_url="https://idealab.alibaba-inc.com/api/openai/v1",
+        )
+
+    def cleanup(self):
+        if hasattr(self, 'client'):
+            del self.client
+
+    def encode_image_to_base64(self, image_path: str) -> str:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
+
+    def get_correct_response(self, model_name: str, prompt: str, image_path: str) -> str:
+        response = self.model_chat(model_name, prompt, image_path)
+        return response if response else self.get_correct_response(model_name, prompt, image_path)
+
+    def model_chat(self, model_name: str, prompt: str, image_path: str) -> str:
+        client = self.load_client()
+        messages = [
+            {
+                "role": "user",
+                "content": self.build_message_content(prompt, image_path)
+            }
+        ]
+        try:
+            completion = client.chat.completions.create(model=model_name, messages=messages)
+            return completion.choices[0].message.content
+        except:
+            return self.model_chat(model_name, prompt, image_path)
+
+    def build_message_content(self, prompt: str, image_path: str):
+        if image_path == "Null":
+            return prompt
+        base64_image = self.encode_image_to_base64(image_path)
+        return [
+            {"type": "text", "text": prompt},
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/png;base64,{base64_image}"
+                },
+            },
+        ]
+
+class GPT4oInferencer(APIInferencer):
+    def infer(self, prompt: str, image_path: str) -> str:
+        response = self.get_correct_response('gpt-4o-0513', prompt, image_path)
+        return response
+    
+class Claude35Inferencer(APIInferencer):
+    def infer(self, prompt: str, image_path: str) -> str:
+        response = self.get_correct_response('claude35_sonnet', prompt, image_path)
+        return response
+
+class GPT4VInference(APIInferencer):
+    def infer(self, prompt: str, image_path: str) -> str:
+        response = self.get_correct_response('gpt-4-vision-preview', prompt, image_path)
+        return response
+
+class Gemini15ProInference(APIInferencer):
+    def infer(self, prompt: str, image_path: str) -> str:
+        response = self.get_correct_response('gemini-1.5-pro', prompt, image_path)
+        return response
+    
+class QwenVLMaxInference(APIInferencer):
+    def build_message_content(self, prompt: str, image_url: str):
+        if image_url == "Null":
+            return prompt
+        return [
+            {"type": "text", "text": prompt},
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"{image_url}"
+                },
+            },
+        ]
+    
+    def infer(self, prompt: str, image_path: str) -> str:
+        response = self.get_correct_response('qwen-vl-max', prompt, image_path)
+        return response

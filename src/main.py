@@ -4,7 +4,7 @@ sys.dont_write_bytecode = True
 import json
 import argparse
 
-from model import QwenVLChatInferencer, BLIP2Inferencer
+from model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, Claude35Inferencer, GPT4VInference, QwenVLMaxInference, Gemini15ProInference
 from config import GAMES, MODELS, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_IMAGE_BASE_DIR, OUTPUT_IMAGE_HIS_DIR, OUTPUT_TEXT_BASE_DIR, OUTPUT_TEXT_HIS_DIR
 from multi_step.prompt_history import add_conversation_history
 from multi_step.prompt_text_level import add_level_to_prompt
@@ -60,7 +60,14 @@ def save_output(path, model_name, game_name, level, step, output):
 # Factory function to create inferencers based on model name
 def create_inferencer(model_name):
     inferencer_classes = {
-        'blip2': BLIP2Inferencer,
+        # 'blip2': BLIP2Inferencer,
+        'qwen_vl_chat': QwenVLChatInferencer,
+        'gpt4o': GPT4oInferencer,
+        'claude35': Claude35Inferencer,
+        'gpt4v': GPT4VInference,
+        'qwen_vl_max': QwenVLMaxInference,
+        'gemini_15_pro': Gemini15ProInference,
+
         # Add more model inferencer mappings here
     }
     return inferencer_classes[model_name]()
@@ -161,27 +168,32 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
 # Main function to load models and process games
 def main():
     parser = argparse.ArgumentParser(description="Inference mode")
-    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_image',
+    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_text',
+                        help='Inference mode: base_image (default), history_image, base_text, or history_text')
+    parser.add_argument('--model', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro'], default='gemini_15_pro',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
     args = parser.parse_args()
     
-    for model_name in MODELS:
-        inferencer = create_inferencer(model_name)
+    # for model_name in MODELS:
+        # for mode in ['base_image', 'history_image', 'base_text', 'history_text']:
+
+    inferencer = create_inferencer(args.model)
+    if args.model in ['qwen_vl_chat']:
         inferencer.load_model()
+    
+    for game in GAMES:
+        levels = load_levels(game["levels_path"])
         
-        for game in GAMES:
-            levels = load_levels(game["levels_path"])
-            
-            if args.mode == 'base_image':
-                inference(game, model_name, inferencer, levels, use_history=False, use_text=False)
-            elif args.mode == 'history_image':
-                inference(game, model_name, inferencer, levels, use_history=True, use_text=False)
-            elif args.mode == 'base_text':
-                inference(game, model_name, inferencer, levels, use_history=False, use_text=True)
-            elif args.mode == 'history_text':
-                inference(game, model_name, inferencer, levels, use_history=True, use_text=True)
-        
-        inferencer.cleanup()
+        if args.mode == 'base_image':
+            inference(game, args.model, inferencer, levels, use_history=False, use_text=False)
+        elif args.mode == 'history_image':
+            inference(game, args.model, inferencer, levels, use_history=True, use_text=False)
+        elif args.mode == 'base_text':
+            inference(game, args.model, inferencer, levels, use_history=False, use_text=True)
+        elif args.mode == 'history_text':
+            inference(game, args.model, inferencer, levels, use_history=True, use_text=True)
+    
+    inferencer.cleanup()
 
     generate_score()
 
