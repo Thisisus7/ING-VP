@@ -63,8 +63,8 @@ class APIInferencer(ABC):
 
     def load_client(self):
         return OpenAI(
-            api_key='e2e09c3b97c9b3bd22621c808c0dda38',
-            base_url="https://idealab.alibaba-inc.com/api/openai/v1",
+            api_key='xxx',
+            base_url="xxx",
         )
 
     def cleanup(self):
