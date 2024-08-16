@@ -1,7 +1,7 @@
 #!/bin/bash
 LOG_DIR="logs"
 mkdir -p "$LOG_DIR"
-MODEL="gemini_15_pro" 
+MODEL="claude35" 
 
 MODES=("base_image" "history_image" "base_text" "history_text")
 
