@@ -118,6 +118,7 @@ def extract_moves(input_string):
 def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_maze):
     results = []
     is_valid = False  # Initialize is_valid
+    is_active = False
 
     level_num = last_move['level']
     level = levels[level_num - 1]
@@ -131,7 +132,6 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
         end_pos = find_end_position(maze)
 
     extract_move = extract_moves(last_move['output'])
-
     if extract_move:
         new_pos = move_agent(maze, start_pos, extract_move)   
         maze = update_maze(maze, start_pos, new_pos, end_pos)  
@@ -150,6 +150,9 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     draw_maze(maze, image_path)
     save_maze_to_file(maze, level_path)
 
+    if new_pos != start_pos:
+        is_active = True
+
     if new_pos == end_pos:
         is_valid = True
 
@@ -157,6 +160,7 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
         "model": model_name,
         "level": level_num,
         "output": extract_move,
+        "is_active": is_active,
         "is_valid": is_valid,
         "step": step
     })

@@ -3,6 +3,7 @@ import sys
 import json
 import os
 import re
+import copy
 
 # Initialize Pygame without display
 pygame.init()
@@ -109,6 +110,9 @@ def extract_move(input_string):
                 print(f"Error: {e}")
     return None
 
+def active_move(previous_state, state):
+    return previous_state != state
+
 def back_to_step(direction, step_states, state):
     previous_state = step_states.get(direction)
     if previous_state:
@@ -119,13 +123,12 @@ def back_to_step(direction, step_states, state):
 # Function to evaluate moves, calculate results, and manage output
 def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state, step_states):
     results = []
-    is_valid = False
-
     level_num = last_move['level']
     level = levels[level_num - 1]
     print(f"Processing model {model_name}, sokoban, level {level_num}, step {step}")
 
     state = create_game_state(level, current_state)
+    previous_state = copy.deepcopy(state)
     direction = extract_move(last_move['output'])
     if direction:
         if isinstance(direction, int):
@@ -145,12 +148,14 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     draw_game_state(state, image_path)
     save_game_state_to_file(state, level_path)
 
+    is_active = active_move(previous_state, state)
     is_valid = all('$' not in row for row in state)
 
     results.append({
         "model": model_name,
         "level": level_num,
         "output": direction,
+        "is_active": is_active,
         "is_valid": is_valid,
         "step": step
     })

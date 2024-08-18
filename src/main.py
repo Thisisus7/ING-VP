@@ -60,7 +60,7 @@ def save_output(path, model_name, game_name, level, step, output):
 # Factory function to create inferencers based on model name
 def create_inferencer(model_name):
     inferencer_classes = {
-        # 'blip2': BLIP2Inferencer,
+        'blip2': BLIP2Inferencer,
         'qwen_vl_chat': QwenVLChatInferencer,
         'gpt4o': GPT4oInferencer,
         'claude35': Claude35Inferencer,
@@ -170,7 +170,7 @@ def main():
     parser = argparse.ArgumentParser(description="Inference mode")
     parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_text',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
-    parser.add_argument('--model', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro'], default='gemini_15_pro',
+    parser.add_argument('--model', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='blip2',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
     args = parser.parse_args()
     
@@ -178,7 +178,7 @@ def main():
         # for mode in ['base_image', 'history_image', 'base_text', 'history_text']:
 
     inferencer = create_inferencer(args.model)
-    if args.model in ['qwen_vl_chat']:
+    if args.model in ['qwen_vl_chat', 'blip2']:
         inferencer.load_model()
     
     for game in GAMES:

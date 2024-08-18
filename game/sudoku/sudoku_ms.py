@@ -3,6 +3,7 @@ import sys
 import json
 import os
 import re
+import copy
 
 # Initialize Pygame without display
 pygame.init()
@@ -99,9 +100,11 @@ def is_valid_move(extracted_move):
     
     return True
 
+def active_move(previous_state, state):
+    return previous_state != state
+
 def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state, step_states):
     results = []
-    is_valid = False
 
     level_num = last_move['level']
     level = json.loads(levels[0][level_num-1])
@@ -109,9 +112,9 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     print(f"Processing model {model_name}, sudoku, level {level_num}, step {step}")
 
     state = create_game_state(level, current_state)
+    previous_state = copy.deepcopy(state)
 
-    # extracted_move = extract_move(last_move['output'])
-    extracted_move = extract_move("{\"output\": {\"56\": 10}}")
+    extracted_move = extract_move(last_move['output'])
     if extracted_move:
         if isinstance(extracted_move, int):
             state = back_to_step(extracted_move, step_states, state)
@@ -135,12 +138,14 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     draw_game_state(state, image_path, added_positions)
     save_game_state_to_file(state, level_path, level_num, step, extracted_move)
 
+    is_active = active_move(previous_state, state)
     is_valid = validate_solution(state['current_board'], state['solution'])
 
     results.append({
         "model": model_name,
         "level": level_num,
         "output": extracted_move,
+        "is_active": is_active,
         "is_valid": is_valid,
         "step": step
     })

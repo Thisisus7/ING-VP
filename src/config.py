@@ -69,7 +69,6 @@ GAMES = [
 ]
 
 # MODELS = ["blip2", "qwen_vl_chat"]
-# MODELS = ["blip2", "qwen_vl_chat"]
 # MODELS = ["qwen_vl_chat"]
 # MODELS = ["gpt4o", "claude35"]
 # MODELS = ["gpt4o", "claude35"]
@@ -78,9 +77,9 @@ GAMES = [
 # MODELS = ["gemini_15_pro"]
 # MODELS = ["gpt4o"]
 # MODELS = ["claude35"]
-MODELS = ["gpt4v"]
+# MODELS = ["gpt4v"]
 # MODELS = ["qwen_vl_max"]
-# MODELS = ["blip2"]
+MODELS = ["blip2"]
 # Configuration for inference levels and output directory
 START_LEVEL = 3
 END_LEVEL = 3

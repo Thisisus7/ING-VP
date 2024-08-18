@@ -3,6 +3,7 @@ import sys
 import json
 import os
 import re
+import copy
 
 # Initialize Pygame without display
 pygame.init()
@@ -60,6 +61,9 @@ def is_valid_move(queens, new_queen):
             return False
     return True
 
+def active_move(previous_state, state):
+    return previous_state != state
+
 def extract_coordinates(input_string):
     if input_string:
         pattern = r'\{.*?\}'
@@ -90,14 +94,14 @@ def back_to_step(extracted_move, step_states, state):
 
 def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state, step_states):
     results = []
-    is_valid = False
-
     level_num = last_move['level']
     levels = [json.loads(json_str) for json_str in levels[0]]  # convert string to dict
     level = next(l for l in levels if l['level'] == level_num)
     print(f"Processing model {model_name}, n_queens, level {level_num}, step {step}")
 
     state = create_game_state(level, current_state)
+    previous_state = copy.deepcopy(state['queens'])
+
     extract_move = extract_coordinates(last_move['output'])
     if extract_move and is_valid_move(state['queens'], extract_move):
         state['queens'].append(extract_move)
@@ -116,12 +120,14 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     draw_game_state(state, image_path)
     save_game_state_to_file(state, level_path, level_num, step)
 
+    is_active = active_move(previous_state, state['queens'])
     is_valid = validate_solution(state['queens'])
 
     results.append({
         "model": model_name,
         "level": level_num,
         "output": extract_move,
+        "is_active": is_active,
         "is_valid": is_valid,
         "step": step
     })

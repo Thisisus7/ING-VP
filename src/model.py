@@ -3,7 +3,7 @@ import base64
 from transformers import AutoModelForCausalLM, AutoTokenizer, Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig
 from PIL import Image
 from abc import ABC, abstractmethod
-from openai import OpenAI
+# from openai import OpenAI
 
 class ModelInferencer(ABC):
     

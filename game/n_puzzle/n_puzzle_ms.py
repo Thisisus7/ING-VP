@@ -3,6 +3,7 @@ import sys
 import json
 import os
 import re
+import copy
 
 # Initialize Pygame without display
 pygame.init()
@@ -127,6 +128,9 @@ def apply_move(state, tile):
     
     return {'n': n, 'position': position}
 
+def active_move(previous_state, state):
+    return previous_state != state
+
 def validate_solution(state):
     n = state['n']
     position = state['position']
@@ -136,7 +140,6 @@ def validate_solution(state):
 
 def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state):
     results = []
-    is_valid = False
 
     level_num = last_move['level']
     level = json.loads(levels[0][level_num-1])
@@ -146,6 +149,9 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     else:
         # For subsequent steps, use the current_state directly
         state = current_state
+
+    previous_state = copy.deepcopy(state)
+
     print(f"Processing model {model_name}, n_puzzle, level {level_num}, step {step}")
 
     extract_move_result = extract_move(last_move['output'])
@@ -164,12 +170,14 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     draw_game_state(state, image_path)
     save_game_state_to_file(state, level_path, level_num, step, model_name)
 
+    is_active = active_move(previous_state, state)
     is_valid = validate_solution(state)
 
     results.append({
         "model": model_name,
         "level": level_num,
         "output": extract_move_result,
+        "is_active": is_active,
         "is_valid": is_valid,
         "step": step
     })

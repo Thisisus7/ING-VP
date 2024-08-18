@@ -3,6 +3,7 @@ import sys
 import json
 import os
 import re
+import copy
 
 # Initialize Pygame without display
 pygame.init()
@@ -67,7 +68,6 @@ def draw_game_state(state, output_path):
     pygame.image.save(screen, output_path)
 
 def is_valid_move(state, source, destination):
-    print(f"state: {state}")
     if not source in state or not destination in state:                    # if not A, B, C, D
         return False
     if not state[source]:                                                  # if no element in source
@@ -75,6 +75,9 @@ def is_valid_move(state, source, destination):
     if state[destination] and state[source][-1] < state[destination][-1]:  # if source < destination
         return False
     return True
+
+def is_active_move(previous_state, current_state):
+    return previous_state != current_state
 
 def extract_move(input_string):
     if input_string:
@@ -104,9 +107,8 @@ def save_game_state_to_file(state, output_path, level, step):
         json.dump(data, f)
         f.write('\n')
 
-def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state=None):
+def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current_state):
     results = []
-    is_valid = False
 
     level_num = last_move['level']
     level = json.loads(levels[0][level_num-1])
@@ -119,16 +121,16 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
     print(f"Processing model {model_name}, hanoi, level {level_num}, step {step}")
 
     state = create_game_state(level, current_state)
+    previous_state = copy.deepcopy(state)
 
-    dummy_output = "{\"output\": \"CD\"}"
-    extract_move_result = extract_move(dummy_output)
-    # extract_move_result = extract_move(last_move['output'])
-    if extract_move_result:
+    extract_move_result = extract_move(last_move['output'])
+    if extract_move_result and len(extract_move_result) == 2:
         source, destination = extract_move_result
         if is_valid_move(state, source, destination):
             disk = state[source].pop()
             state[destination].append(disk)
 
+    is_active = is_active_move(previous_state, state)
     # Save intermediate states
     image_dir = os.path.join(output_base_dir, "process_images",  model_name, "hanoi", f"level_{level_num}")
     level_dir = os.path.join(output_base_dir, "process_levels",  model_name, "hanoi")
@@ -147,6 +149,7 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
         "model": model_name,
         "level": level_num,
         "output": f"{source}{destination}" if extract_move_result else None,
+        "is_active": is_active,
         "is_valid": is_valid,
         "step": step
     })
@@ -155,7 +158,6 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir, step, current
 
 # Main function (placeholder for now)
 def main(last_move, output_dir_base, model_name, step, levels, current_level, step_states):
-    
     if step > 1 and current_level is None:
         # Load the previous state from the process_levels file
         level_num = last_move['level']
