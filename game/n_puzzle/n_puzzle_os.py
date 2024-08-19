@@ -128,16 +128,23 @@ def validate_solution(state):
     return flattened == expected
 
 def evaluate_moves(levels, moves, model_name, output_base_dir):
-    is_valid = False
     level_num = moves['level']
     level = json.loads(levels[0][level_num-1])
 
     state = create_game_state(level)
+
+    total_moves = 0
+    active_moves = 0
+
     extract_move_result = extract_move(moves['output'])
     if extract_move_result is not None:
         for single_move in extract_move_result:
+            total_moves += 1
             if is_valid_move(state, single_move):
                 state = apply_move(state, single_move)
+                active_moves += 1
+
+    is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
 
     # Save intermediate states
     image_dir = os.path.join(output_base_dir, "process_images",  model_name, "n_puzzle")
@@ -156,6 +163,7 @@ def evaluate_moves(levels, moves, model_name, output_base_dir):
         "model": model_name,
         "level": level_num,
         "output": extract_move_result,
+        "is_active": is_active,
         "is_valid": is_valid,
     }
 

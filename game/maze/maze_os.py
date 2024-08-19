@@ -54,18 +54,27 @@ def extract_moves(input_string):
 # Function to move the agent within the maze
 def move_agent(maze, agent_pos, moves):
     x, y = agent_pos
+    total_moves = 0
+    active_moves = 0
 
     for move in moves:
+        total_moves += 1
         if move == 'U' and y > 0 and maze[y - 1][x] == ' ':
             y -= 1
+            active_moves += 1
         elif move == 'D' and y + 1 < len(maze) and maze[y + 1][x] == ' ':
             y += 1
+            active_moves += 1
         elif move == 'L' and x > 0 and maze[y][x - 1] == ' ':
             x -= 1
+            active_moves += 1
         elif move == 'R' and x + 1 < len(maze[y]) and maze[y][x + 1] == ' ':
             x += 1
+            active_moves += 1
+
+    is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
     
-    return (x, y)
+    return (x, y), is_active
 
 def update_maze(maze, old_pos, new_pos, end_pos):
     if old_pos != new_pos:
@@ -102,14 +111,14 @@ def save_maze_to_file(maze, output_path):
 # Function to evaluate moves, calculate results, and manage output
 def evaluate_moves(levels, moves, model_name, output_base_dir):
     is_valid = False
-
+    is_active = 0.0
     level_num = moves['level']
     level = levels[level_num - 1]
 
     maze, start_pos, end_pos = create_maze(level)
     extract_move = extract_moves(moves['output'])
     if extract_move:
-        new_pos = move_agent(maze, start_pos, extract_move)   
+        new_pos, is_active = move_agent(maze, start_pos, extract_move)   
         maze = update_maze(maze, start_pos, new_pos, end_pos)  
     else:
         new_pos = start_pos
@@ -132,6 +141,7 @@ def evaluate_moves(levels, moves, model_name, output_base_dir):
         "model": model_name,
         "level": level_num,
         "output": extract_move,
+        "is_active": is_active,
         "is_valid": is_valid,
     }
 

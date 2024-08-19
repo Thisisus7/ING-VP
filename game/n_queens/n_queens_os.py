@@ -62,10 +62,17 @@ def is_on_board(queen):
 
 def is_valid_move(queens, new_queens):
     valid_moves = []
+    total_moves = 0
+    active_moves = 0
+
     for new_queen in new_queens:
+        total_moves += 1
         if is_on_board(new_queen) and is_valid_position(new_queen, queens):
             valid_moves.append(new_queen)
-    return valid_moves
+            active_moves += 1
+    
+    is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
+    return valid_moves, is_active
 
 def draw_chessboard(screen, board_size):
     for row in range(board_size):
@@ -113,17 +120,16 @@ def validate_solution(queens):
     return True
 
 def evaluate_moves(levels, moves, model_name, output_base_dir):
-    is_valid = False
+    is_active = 0.0
 
     level_num = moves['level']
     levels = [json.loads(json_str) for json_str in levels[0]]  # convert string to dict
     level = next(l for l in levels if l['level'] == level_num)
     
     state = create_game_state(level)
-    print(f"state: {state}")
     extract_move = extract_coordinates(moves['output'])
     if extract_move:
-        valid_moves = is_valid_move(state['queens'], extract_move)
+        valid_moves, is_active = is_valid_move(state['queens'], extract_move)
         state['queens'].extend(valid_moves)
 
     # Save intermediate states
@@ -144,6 +150,7 @@ def evaluate_moves(levels, moves, model_name, output_base_dir):
         "model": model_name,
         "level": level_num,
         "output": extract_move,
+        "is_active": is_active,
         "is_valid": is_valid,
     }
 

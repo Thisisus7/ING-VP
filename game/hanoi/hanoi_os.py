@@ -48,7 +48,6 @@ def extract_move(input_string):
     return None
 
 def is_valid_move(state, source, destination):
-    print(f"state: {state}")
     if not source in state or not destination in state:                    # if not A, B, C, D
         return False
     if not state[source]:                                                  # if no element in source
@@ -101,20 +100,28 @@ def validate_solution(state):
     return len(state['D']) == 5 and state['D'] == ['a', 'b', 'c', 'd', 'e']
 
 def evaluate_moves(levels, last_move, model_name, output_base_dir):
-    is_valid = False
     level_num = last_move['level']
     level = json.loads(levels[0][level_num-1])
 
     state = create_game_state(level)
         
+    total_moves = 0
+    active_moves = 0
     source, destination = None, None
+
     extract_move_results = extract_move(last_move['output'])
     if extract_move_results:
         for extract_move_result in extract_move_results:
             source, destination = extract_move_result
+            total_moves += 1
             if is_valid_move(state, source, destination):
+                previous_state = (state[source][-1] if state[source] else None)
                 disk = state[source].pop()
                 state[destination].append(disk)
+                if previous_state != (state[source][-1] if state[source] else None):
+                    active_moves += 1
+
+    is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
 
     # Save intermediate states
     image_dir = os.path.join(output_base_dir, "process_images",  model_name, "hanoi")
@@ -132,7 +139,8 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir):
     result = {
         "model": model_name,
         "level": level_num,
-        "output": f"{source}{destination}" if source else None,
+        "output": extract_move_results if extract_move_results else None,
+        "is_active": is_active,
         "is_valid": is_valid,
     }
 

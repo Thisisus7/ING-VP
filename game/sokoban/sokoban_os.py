@@ -43,7 +43,11 @@ def extract_move(input_string):
     return None
 
 def move_worker(state, directions):
+    total_moves = 0
+    active_moves = 0
+
     for direction in directions:
+        total_moves += 1
         # Find worker position
         worker_pos = None
         for y, row in enumerate(state):
@@ -67,12 +71,16 @@ def move_worker(state, directions):
         if state[new_y][new_x] in (' ', '.'):
             state[worker_pos[1]][worker_pos[0]] = ' ' if state[worker_pos[1]][worker_pos[0]] == '@' else '.'
             state[new_y][new_x] = '@' if state[new_y][new_x] == ' ' else '+'
+            active_moves += 1
         elif state[new_y][new_x] in ('$', '*') and state[next_y][next_x] in (' ', '.'):
             state[worker_pos[1]][worker_pos[0]] = ' ' if state[worker_pos[1]][worker_pos[0]] == '@' else '.'
             state[new_y][new_x] = '@' if state[new_y][new_x] == '$' else '+'
             state[next_y][next_x] = '$' if state[next_y][next_x] == ' ' else '*'
+            active_moves += 1
     
-    return state
+    is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
+
+    return state, is_active
 
 # Function to draw the game state and save it as an image
 def draw_game_state(state, output_path):
@@ -108,7 +116,7 @@ def save_game_state_to_file(state, output_path):
 
 # Function to evaluate moves, calculate results, and manage output
 def evaluate_moves(levels, moves, model_name, output_base_dir):
-    is_valid = False
+    is_active = 0.0
 
     level_num = moves['level']
     level = levels[level_num - 1]
@@ -116,7 +124,7 @@ def evaluate_moves(levels, moves, model_name, output_base_dir):
     state = create_game_state(level)
     directions = extract_move(moves['output'])
     if directions:
-        state = move_worker(state, directions)
+        state, is_active = move_worker(state, directions)
 
     # Save intermediate states
     image_dir = os.path.join(output_base_dir, "process_images",  model_name, "sokoban")
@@ -135,6 +143,7 @@ def evaluate_moves(levels, moves, model_name, output_base_dir):
         "model": model_name,
         "level": level_num,
         "output": directions,
+        "is_active": is_active,
         "is_valid": is_valid,
     }
 

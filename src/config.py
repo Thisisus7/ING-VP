@@ -47,7 +47,7 @@ GAMES = [
     {
         "name": "hanoi",
         "levels_path": "data/hanoi/levels_50.jsonl",
-        "level_image_path": "data/sudoku/LevelImages/level_{}.png",
+        "level_image_path": "data/hanoi/LevelImages/level_{}.png",
         "prompt_path": "prompts/one_step_image/prt_hanoi_os.txt",
         "prompt_ms_path": "prompts/multi_step_image/prt_hanoi.txt",
         "prompt_ms_history_path": "prompts/multi_step_history_image/prt_hanoi_history.txt",
