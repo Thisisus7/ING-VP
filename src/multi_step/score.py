@@ -38,10 +38,13 @@ def calculate_scores(game_dir):
         valid_score += valid
         active_ratios.append(active_ratio)
     
-
     valid_score = round(valid_score / DENOMINATOR * 100, 1)
     active_score = round(sum(active_ratios) / len(active_ratios) * 100, 1)
     return valid_score, active_score
+
+def calculate_overall_score(scores):
+    valid_scores = [scores.get(game, 0) if scores.get(game) != '-' else 0 for game in scores]
+    return round(sum(valid_scores) / len(valid_scores), 1)
 
 def generate_score(base_dir='outputs/multi_step'):
     games = ['maze', 'sokoban', 'n_queens', 'n_puzzle', 'hanoi', 'sudoku']
@@ -83,18 +86,20 @@ def generate_score(base_dir='outputs/multi_step'):
             valid_output_file = os.path.join(output_dir, f'{combined_setting}.csv')
             with open(valid_output_file, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
-                writer.writerow([''] + games)
+                writer.writerow([''] + games + ['overall'])
                 for model, game_scores in valid_scores.items():
-                    writer.writerow([model] + [game_scores.get(game, '-') for game in games])
+                    overall_score = calculate_overall_score(game_scores)
+                    writer.writerow([model] + [game_scores.get(game, '-') for game in games] + [overall_score])
             print(f"Generated {valid_output_file}")
             
             # Generate active scores CSV
             active_output_file = os.path.join(output_dir, f'active_{combined_setting}.csv')
             with open(active_output_file, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
-                writer.writerow([''] + games)
+                writer.writerow([''] + games + ['overall'])
                 for model, game_scores in active_scores.items():
-                    writer.writerow([model] + [game_scores.get(game, '-') for game in games])
+                    overall_score = calculate_overall_score(game_scores)
+                    writer.writerow([model] + [game_scores.get(game, '-') for game in games] + [overall_score])
             print(f"Generated {active_output_file}")
 
 if __name__ == "__main__":

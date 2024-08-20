@@ -65,6 +65,11 @@ def process_models(eval_path, games):
     
     return valid_scores, active_scores
 
+def calculate_overall_score(scores):
+    """Calculate the overall score for a model."""
+    valid_scores = [scores.get(game, 0) if scores.get(game) != '-' else 0 for game in scores]
+    return round(sum(valid_scores) / len(valid_scores), 1)
+
 def save_scores_to_csv(scores, output_dir, setting, games, score_type):
     """Save the calculated scores to a CSV file."""
     file_prefix = "active_" if score_type == "active" else ""
@@ -72,9 +77,10 @@ def save_scores_to_csv(scores, output_dir, setting, games, score_type):
     
     with open(output_file, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow([''] + games)
+        writer.writerow([''] + games + ['overall'])
         for model, game_scores in scores.items():
-            writer.writerow([model] + [game_scores.get(game, '-') for game in games])
+            overall_score = calculate_overall_score(game_scores)
+            writer.writerow([model] + [game_scores.get(game, '-') for game in games] + [overall_score])
     
     print(f"Generated {output_file}")
 
