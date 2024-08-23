@@ -73,7 +73,7 @@ def create_inferencer(model_name):
     return inferencer_classes[model_name]()
 
 # Process each game level with the specified model inferencer
-def inference(game, model_name, inferencer, levels, use_history, use_text):
+def inference(game, model_name, inferencer, levels, temperature, use_history, use_text):
     if use_history and use_text:
         output_dir = OUTPUT_TEXT_HIS_DIR
         prompt_path = game["text_prompt_ms_history_path"]
@@ -119,7 +119,7 @@ def inference(game, model_name, inferencer, levels, use_history, use_text):
 
             current_prompt = add_conversation_history(prompt, model_name, game["name"], level) if use_history else prompt
 
-            output = inferencer.infer(current_prompt, image_path)
+            output = inferencer.infer(current_prompt, image_path, temperature)
 
             save_output(level_output_path, model_name, game["name"], level, step, output)
 
@@ -170,8 +170,10 @@ def main():
     parser = argparse.ArgumentParser(description="Inference mode")
     parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_text',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
-    parser.add_argument('--model', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='blip2',
+    parser.add_argument('--model', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='claude35',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
+    parser.add_argument('--temperature', default=0,
+                        help='The hyperparameter of generation')
     args = parser.parse_args()
     
     # for model_name in MODELS:
@@ -185,13 +187,13 @@ def main():
         levels = load_levels(game["levels_path"])
         
         if args.mode == 'base_image':
-            inference(game, args.model, inferencer, levels, use_history=False, use_text=False)
+            inference(game, args.model, inferencer, levels, temperature=args.temperature, use_history=False, use_text=False)
         elif args.mode == 'history_image':
-            inference(game, args.model, inferencer, levels, use_history=True, use_text=False)
+            inference(game, args.model, inferencer, levels, temperature=args.temperature, use_history=True, use_text=False)
         elif args.mode == 'base_text':
-            inference(game, args.model, inferencer, levels, use_history=False, use_text=True)
+            inference(game, args.model, inferencer, levels, temperature=args.temperature, use_history=False, use_text=True)
         elif args.mode == 'history_text':
-            inference(game, args.model, inferencer, levels, use_history=True, use_text=True)
+            inference(game, args.model, inferencer, levels, temperature=args.temperature, use_history=True, use_text=True)
     
     inferencer.cleanup()
 

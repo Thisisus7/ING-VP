@@ -3,7 +3,7 @@ import base64
 from transformers import AutoModelForCausalLM, AutoTokenizer, Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig
 from PIL import Image
 from abc import ABC, abstractmethod
-# from openai import OpenAI
+from openai import OpenAI
 
 class ModelInferencer(ABC):
     
@@ -63,8 +63,8 @@ class APIInferencer(ABC):
 
     def load_client(self):
         return OpenAI(
-            api_key='xxx',
-            base_url="xxx",
+            api_key='e2e09c3b97c9b3bd22621c808c0dda38',
+            base_url="https://idealab.alibaba-inc.com/api/openai/v1",
         )
 
     def cleanup(self):
@@ -75,11 +75,11 @@ class APIInferencer(ABC):
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
 
-    def get_correct_response(self, model_name: str, prompt: str, image_path: str) -> str:
-        response = self.model_chat(model_name, prompt, image_path)
-        return response if response else self.get_correct_response(model_name, prompt, image_path)
+    def get_correct_response(self, model_name: str, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.model_chat(model_name, prompt, image_path, temperature)
+        return response if response else self.get_correct_response(model_name, prompt, image_path, temperature)
 
-    def model_chat(self, model_name: str, prompt: str, image_path: str) -> str:
+    def model_chat(self, model_name: str, prompt: str, image_path: str, temperature: float) -> str:
         client = self.load_client()
         messages = [
             {
@@ -88,10 +88,10 @@ class APIInferencer(ABC):
             }
         ]
         try:
-            completion = client.chat.completions.create(model=model_name, messages=messages)
+            completion = client.chat.completions.create(model=model_name, messages=messages, temperature=temperature)
             return completion.choices[0].message.content
         except:
-            return self.model_chat(model_name, prompt, image_path)
+            return self.model_chat(model_name, prompt, image_path, temperature)
 
     def build_message_content(self, prompt: str, image_path: str):
         if image_path == "Null":
@@ -108,23 +108,23 @@ class APIInferencer(ABC):
         ]
 
 class GPT4oInferencer(APIInferencer):
-    def infer(self, prompt: str, image_path: str) -> str:
-        response = self.get_correct_response('gpt-4o-0513', prompt, image_path)
+    def infer(self, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.get_correct_response('gpt-4o-0513', prompt, image_path, temperature)
         return response
     
 class Claude35Inferencer(APIInferencer):
-    def infer(self, prompt: str, image_path: str) -> str:
-        response = self.get_correct_response('claude35_sonnet', prompt, image_path)
+    def infer(self, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.get_correct_response('claude35_sonnet', prompt, image_path, temperature)
         return response
 
 class GPT4VInference(APIInferencer):
-    def infer(self, prompt: str, image_path: str) -> str:
-        response = self.get_correct_response('gpt-4-vision-preview', prompt, image_path)
+    def infer(self, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.get_correct_response('gpt-4-vision-preview', prompt, image_path, temperature)
         return response
 
 class Gemini15ProInference(APIInferencer):
-    def infer(self, prompt: str, image_path: str) -> str:
-        response = self.get_correct_response('gemini-1.5-pro', prompt, image_path)
+    def infer(self, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.get_correct_response('gemini-1.5-pro', prompt, image_path, temperature)
         return response
     
 class QwenVLMaxInference(APIInferencer):
@@ -141,6 +141,6 @@ class QwenVLMaxInference(APIInferencer):
             },
         ]
     
-    def infer(self, prompt: str, image_path: str) -> str:
-        response = self.get_correct_response('qwen-vl-max', prompt, image_path)
+    def infer(self, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.get_correct_response('qwen-vl-max', prompt, image_path, temperature)
         return response
