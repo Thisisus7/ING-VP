@@ -5,7 +5,7 @@ import json
 import argparse
 
 from model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, Claude35Inferencer, GPT4VInference, QwenVLMaxInference, Gemini15ProInference
-from config import GAMES, MODELS, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_IMAGE_BASE_DIR, OUTPUT_IMAGE_HIS_DIR, OUTPUT_TEXT_BASE_DIR, OUTPUT_TEXT_HIS_DIR
+from config import GAMES, MODELS, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_IMAGE_BASE_DIR, OUTPUT_IMAGE_HIS_DIR, OUTPUT_TEXT_BASE_DIR, OUTPUT_TEXT_HIS_DIR, SYSTEM_PROMPT_SUFFIX, INSTRUCTION_SUFFIX, USER_SUFFIX
 from multi_step.prompt_history import add_conversation_history
 from multi_step.prompt_text_level import add_level_to_prompt
 from multi_step.score import generate_score
@@ -73,7 +73,10 @@ def create_inferencer(model_name):
     return inferencer_classes[model_name]()
 
 # Process each game level with the specified model inferencer
-def inference(game, model_name, inferencer, levels, temperature, use_history, use_text):
+# inference(args,game, inferencer, levels, use_history=False, use_text=False)
+
+def inference(args, game, inferencer, levels, use_history, use_text):
+    model_name, temperature, use_system_prompt = args.model_name, args.temperature, args.use_system_prompt
     if use_history and use_text:
         output_dir = OUTPUT_TEXT_HIS_DIR
         prompt_path = game["text_prompt_ms_history_path"]
@@ -85,9 +88,11 @@ def inference(game, model_name, inferencer, levels, temperature, use_history, us
         prompt_path = game["text_prompt_ms_path"]
     else:
         output_dir = OUTPUT_IMAGE_BASE_DIR
-        prompt_path = game["prompt_ms_path"]
-    
-    prompt = load_prompt(prompt_path)
+        system_prompt, prompt = '', load_prompt(game["prompt_ms_path"].format(USER_SUFFIX))
+        if use_system_prompt:
+            system_prompt, prompt = load_prompt(game["prompt_ms_path"].format(SYSTEM_PROMPT_SUFFIX)), \
+                                            load_prompt(game["prompt_ms_path"].format(INSTRUCTION_SUFFIX))
+
     level_states = {}
     
     for level in range(START_LEVEL, END_LEVEL + 1):
@@ -119,7 +124,7 @@ def inference(game, model_name, inferencer, levels, temperature, use_history, us
 
             current_prompt = add_conversation_history(prompt, model_name, game["name"], level) if use_history else prompt
 
-            output = inferencer.infer(current_prompt, image_path, temperature)
+            output = inferencer.infer(system_prompt, current_prompt, image_path, temperature)
 
             save_output(level_output_path, model_name, game["name"], level, step, output)
 
@@ -168,10 +173,12 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
 # Main function to load models and process games
 def main():
     parser = argparse.ArgumentParser(description="Inference mode")
-    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_text',
+    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_image',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
-    parser.add_argument('--model', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='claude35',
+    parser.add_argument('--model_name', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='claude35',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
+    parser.add_argument('--use_system_prompt', default=True,
+                        help='Use system prompt for closed source models')
     parser.add_argument('--temperature', default=0,
                         help='The hyperparameter of generation')
     args = parser.parse_args()
@@ -179,21 +186,20 @@ def main():
     # for model_name in MODELS:
         # for mode in ['base_image', 'history_image', 'base_text', 'history_text']:
 
-    inferencer = create_inferencer(args.model)
-    if args.model in ['qwen_vl_chat', 'blip2']:
+    inferencer = create_inferencer(args.model_name)
+    if args.model_name in ['qwen_vl_chat', 'blip2']:
         inferencer.load_model()
     
     for game in GAMES:
         levels = load_levels(game["levels_path"])
-        
         if args.mode == 'base_image':
-            inference(game, args.model, inferencer, levels, temperature=args.temperature, use_history=False, use_text=False)
+            inference(args, game, inferencer, levels, use_history=False, use_text=False)
         elif args.mode == 'history_image':
-            inference(game, args.model, inferencer, levels, temperature=args.temperature, use_history=True, use_text=False)
+            inference(args, game, inferencer, levels, use_history=True, use_text=False)
         elif args.mode == 'base_text':
-            inference(game, args.model, inferencer, levels, temperature=args.temperature, use_history=False, use_text=True)
+            inference(args, game, inferencer, levels, use_history=True, use_text=False)
         elif args.mode == 'history_text':
-            inference(game, args.model, inferencer, levels, temperature=args.temperature, use_history=True, use_text=True)
+            inference(args, game, inferencer, levels, use_history=True, use_text=False)
     
     inferencer.cleanup()
 
