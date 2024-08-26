@@ -82,7 +82,10 @@ def inference(args, game, inferencer, levels, use_history, use_text):
         prompt_path = game["text_prompt_ms_history_path"]
     elif use_history:
         output_dir = OUTPUT_IMAGE_HIS_DIR
-        prompt_path = game["prompt_ms_history_path"]
+        system_prompt, prompt = '', load_prompt(game["prompt_ms_path"].format(USER_SUFFIX))
+        if use_system_prompt:
+            system_prompt, prompt = load_prompt(game["prompt_ms_path"].format(SYSTEM_PROMPT_SUFFIX)), \
+                                            load_prompt(game["prompt_ms_path"].format(INSTRUCTION_SUFFIX))
     elif use_text:
         output_dir = OUTPUT_TEXT_BASE_DIR
         prompt_path = game["text_prompt_ms_path"]
