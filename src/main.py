@@ -79,22 +79,22 @@ def inference(args, game, inferencer, levels, use_history, use_text):
     model_name, temperature, use_system_prompt = args.model_name, args.temperature, args.use_system_prompt
     if use_history and use_text:
         output_dir = OUTPUT_TEXT_HIS_DIR
-        system_prompt, prompt = '', load_prompt(game["prompt_ms_path"].format('_text_history'))
+        system_prompt, prompt = '', load_prompt(game["text_prompt_ms_history_path"].format('_text_history'))
         if use_system_prompt:
-            system_prompt, prompt = load_prompt(game["prompt_ms_path"].format(SYSTEM_PROMPT_SUFFIX)), \
-                                            load_prompt(game["prompt_ms_path"].format(INSTRUCTION_SUFFIX))
+            system_prompt, prompt = load_prompt(game["text_prompt_ms_history_path"].format(SYSTEM_PROMPT_SUFFIX)), \
+                                            load_prompt(game["text_prompt_ms_history_path"].format(INSTRUCTION_SUFFIX))
     elif use_history:
         output_dir = OUTPUT_IMAGE_HIS_DIR
         system_prompt, prompt = '', load_prompt(game["prompt_ms_history_path"].format('_history'))
         if use_system_prompt:
-            system_prompt, prompt = load_prompt(game["prompt_ms_history_path"].format(SYSTEM_PROMPT_SUFFIX)), \
-                                            load_prompt(game["prompt_ms_history_path"].format(INSTRUCTION_SUFFIX))
+            system_prompt, prompt = load_prompt(game["text_prompt_ms_history_path"].format(SYSTEM_PROMPT_SUFFIX)), \
+                                            load_prompt(game["text_prompt_ms_history_path"].format(INSTRUCTION_SUFFIX))
     elif use_text:
         output_dir = OUTPUT_TEXT_BASE_DIR
-        system_prompt, prompt = '', load_prompt(game["prompt_ms_path"].format('_text'))
+        system_prompt, prompt = '', load_prompt(game["text_prompt_ms_path"].format('_text'))
         if use_system_prompt:
-            system_prompt, prompt = load_prompt(game["prompt_ms_path"].format(SYSTEM_PROMPT_SUFFIX)), \
-                                            load_prompt(game["prompt_ms_path"].format(INSTRUCTION_SUFFIX))
+            system_prompt, prompt = load_prompt(game["text_prompt_ms_path"].format(SYSTEM_PROMPT_SUFFIX)), \
+                                            load_prompt(game["text_prompt_ms_path"].format(INSTRUCTION_SUFFIX))
     else:
         output_dir = OUTPUT_IMAGE_BASE_DIR
         system_prompt, prompt = '', load_prompt(game["prompt_ms_path"].format(''))
@@ -182,12 +182,12 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
 # Main function to load models and process games
 def main():
     parser = argparse.ArgumentParser(description="Inference mode")
-    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='history_image',
+    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_text',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
     parser.add_argument('--model_name', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='claude35',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
     parser.add_argument('--use_system_prompt', default=True,
-                        help='Use system prompt for closed source models')
+                        help='Whether use system prompt for closed source models')
     parser.add_argument('--temperature', default=0,
                         help='The hyperparameter of generation')
     args = parser.parse_args()
@@ -206,9 +206,9 @@ def main():
         elif args.mode == 'history_image':
             inference(args, game, inferencer, levels, use_history=True, use_text=False)
         elif args.mode == 'base_text':
-            inference(args, game, inferencer, levels, use_history=True, use_text=False)
+            inference(args, game, inferencer, levels, use_history=False, use_text=True)
         elif args.mode == 'history_text':
-            inference(args, game, inferencer, levels, use_history=True, use_text=False)
+            inference(args, game, inferencer, levels, use_history=True, use_text=True)
     
     inferencer.cleanup()
 
