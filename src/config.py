@@ -8,8 +8,8 @@ GAMES = [
         "prompt_ms_path": "prompts_closed_model/multi_step_image/prt_maze{}.txt",
         "prompt_ms_history_path": "prompts_closed_model/multi_step_history_image/prt_maze{}.txt",
         "text_prompt_path": "prompts_closed_model/one_step_text/prt_maze_os_text.txt",
-        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_maze_text.txt",
-        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_maze_text_history.txt",
+        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_maze{}.txt",
+        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_maze{}.txt",
     },
     {
         "name": "sokoban",
@@ -19,8 +19,8 @@ GAMES = [
         "prompt_ms_path": "prompts_closed_model/multi_step_image/prt_sokoban.txt",
         "prompt_ms_history_path": "prompts_closed_model/multi_step_history_image/prt_sokoban{}.txt",
         "text_prompt_path": "prompts_closed_model/one_step_text/prt_sokoban_os_text.txt",
-        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_sokoban_text.txt",
-        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_sokoban_text_history.txt",
+        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_sokoban{}.txt",
+        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_sokoban{}.txt",
     },
     {
         "name": "n_queens",
@@ -30,8 +30,8 @@ GAMES = [
         "prompt_ms_path": "prompts_closed_model/multi_step_image/prt_n_queens{}.txt",
         "prompt_ms_history_path": "prompts_closed_model/multi_step_history_image/prt_n_queens{}.txt",
         "text_prompt_path": "prompts_closed_model/one_step_text/prt_n_queens_os_text.txt",
-        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_n_queens_text.txt",
-        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_n_queens_text_history.txt",    
+        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_n_queens{}.txt",
+        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_n_queens{}.txt",    
     },
     {
         "name": "sudoku",
@@ -41,8 +41,8 @@ GAMES = [
         "prompt_ms_path": "prompts_closed_model/multi_step_image/prt_sudoku{}.txt",
         "prompt_ms_history_path": "prompts_closed_model/multi_step_history_image/prt_sudoku{}.txt",
         "text_prompt_path": "prompts_closed_model/one_step_text/prt_sudoku_os_text.txt",
-        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_sudoku_text.txt",
-        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_sudoku_text_history.txt",       
+        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_sudoku{}.txt",
+        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_sudoku{}.txt",       
     },
     {
         "name": "hanoi",
@@ -52,8 +52,8 @@ GAMES = [
         "prompt_ms_path": "prompts_closed_model/multi_step_image/prt_hanoi{}.txt",
         "prompt_ms_history_path": "prompts_closed_model/multi_step_history_image/prt_hanoi{}.txt",
         "text_prompt_path": "prompts_closed_model/one_step_text/prt_hanoi_os_text.txt",
-        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_hanoi_text.txt",
-        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_hanoi_text_history.txt",        
+        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_hanoi{}.txt",
+        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_hanoi{}.txt",        
     },
     {
         "name": "n_puzzle",
@@ -63,8 +63,8 @@ GAMES = [
         "prompt_ms_path": "prompts_closed_model/multi_step_image/prt_n_puzzle{}.txt",
         "prompt_ms_history_path": "prompts_closed_model/multi_step_history_image/prt_n_puzzle{}.txt",
         "text_prompt_path": "prompts_closed_model/one_step_text/prt_n_puzzle_os_text.txt",
-        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_n_puzzle_text.txt",
-        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_n_puzzle_text_history.txt",        
+        "text_prompt_ms_path": "prompts_closed_model/multi_step_text/prt_n_puzzle{}.txt",
+        "text_prompt_ms_history_path": "prompts_closed_model/multi_step_history_text/prt_n_puzzle{}.txt",        
     },
 ]
 
