@@ -1,0 +1,5 @@
+Number string:
+
+{text_representation_path}
+
+Please output only one step based on given number string and your output must meet required format {"output": {"{row}{column}": {number}}}. And do not output anything else:

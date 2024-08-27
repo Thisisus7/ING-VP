@@ -1,0 +1,5 @@
+List representation:
+
+{text_representation_path}
+
+Please output only one step based on given list representation and your output must meet required format {"output": number}. Please do not output anything else.

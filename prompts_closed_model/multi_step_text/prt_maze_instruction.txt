@@ -1,0 +1,5 @@
+Text matrix:
+
+{text_representation_path}
+
+Please output only one step based on the given rules and text matrix, and your output must be one of the following: {"output": "L"} or {"output": "R"} or {"output": "U"} or {"output": "D"}. Please do not output anything else.

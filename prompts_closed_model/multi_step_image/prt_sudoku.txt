@@ -1,0 +1,13 @@
+This is an image of a level of the Sudoku game.
+Please finish the sudoku puzzle based on the image provided, one step at a time.
+
+Rules:
+    1. In sudoku, each row, column, and 3x3 grid must contain all the digits from 1 to 9 exactly once without repeating.
+    2. You need to determine the number to fill in the blank based on the existing numbers.
+
+Instructions:
+    1. The top left number is at row 0, column 0; the bottom right number is at row 8, column 8.
+    2. Use JSON as your output format: {"output": {"{row}{column}": {number}}}.
+    3. The range of {row} and {column} are 0-8, the range of {number} is 1-9. 
+
+Your answer (single step):

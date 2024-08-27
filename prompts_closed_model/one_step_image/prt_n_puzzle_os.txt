@@ -1,0 +1,15 @@
+This is an image of a level of the n_puzzle game.
+Your task is to generate a list of numbers to complete the n_puzzle problem.
+
+
+Rules: 
+    1. The board is a square grid of size 4 * 4;
+    2. The board contains 15 numbered tiles and one empty space;
+    3. The goal is to rearrange the tiles so that they are in ascending order from the top left corner of the board;
+    4. Valid moves are up, down, left, and right.
+
+Instructions:
+	1. Use JSON as your output format: {"output": [number_1, number_2, number_3, ...]}.
+    2. THe number_1, number_2, ... means if number_1 is around the empty space, they will swap positions first; after that, if number_2 is around the empty space, number_2 and the empty space will swap positions too, and so on.
+
+Your answer:
