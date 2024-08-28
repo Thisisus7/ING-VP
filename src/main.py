@@ -73,7 +73,6 @@ def create_inferencer(model_name):
     return inferencer_classes[model_name]()
 
 # Process each game level with the specified model inferencer
-# inference(args,game, inferencer, levels, use_history=False, use_text=False)
 
 def inference(args, game, inferencer, levels, use_history, use_text):
     model_name, temperature, use_system_prompt = args.model_name, args.temperature, args.use_system_prompt
@@ -105,51 +104,59 @@ def inference(args, game, inferencer, levels, use_history, use_text):
     level_states = {}
     
     for level in range(START_LEVEL, END_LEVEL + 1):
-        step = 1
-        is_valid = False
-        level_output_path = os.path.join(output_dir, "models", model_name, game["name"], f"level_{level}.jsonl")
-
-        step_states = {}
-        while step <= MAX_STEPS and not is_valid:
-            if step == 1:
-                if use_text:  # use text
-                    prompt = add_level_to_prompt(prompt, game, level, step, output_dir, model_name)
-                    image_path = "Null"
-                else:         # use image
-                    image_path = game["level_image_path"].format(level)
-            else:
-                if use_text:  # use text
-                    prompt = add_level_to_prompt(prompt, game, level, step, output_dir, model_name)
-                    image_path = "Null"
-                else:         # use image
-                    image_path = os.path.join(
-                        output_dir,
-                        "process_images",
-                        model_name,
-                        game["name"],
-                        f"level_{level}",
-                        f"step_{step-1}.png"
-                    )
-
-            current_prompt = add_conversation_history(prompt, model_name, game["name"], level) if use_history else prompt
-
-            output = inferencer.infer(system_prompt, current_prompt, image_path, temperature)
-
-            save_output(level_output_path, model_name, game["name"], level, step, output)
-
-            # Evaluate the game with the model output
-            current_level = level_states.get(level) if step > 1 else None
-            is_valid, updated_level = evaluation(game["name"], level, model_name, level_output_path, step, levels, current_level, output_dir, step_states)
-
-            level_states[level] = updated_level
-            step_states[step] = updated_level
-            
-            if is_valid:
-                break
-
-            step += 1
+        level_states = process_level(output_dir, model_name, level, use_text, game, use_history, inferencer, system_prompt, prompt, temperature, level_states, levels)
         
     level_states.clear()
+
+
+def process_level(output_dir, model_name, level, use_text, game, use_history, inferencer, system_prompt, prompt, temperature, level_states, levels):
+    step = 1
+    is_valid = False
+    level_output_path = os.path.join(output_dir, "models", model_name, game["name"], f"level_{level}.jsonl")
+
+    step_states = {}
+    while step <= MAX_STEPS and not is_valid:
+        if step == 1:
+            if use_text:  # use text
+                prompt = add_level_to_prompt(prompt, game, level, step, output_dir, model_name)
+                image_path = "Null"
+            else:         # use image
+                image_path = game["level_image_path"].format(level)
+        else:
+            if use_text:  # use text
+                prompt = add_level_to_prompt(prompt, game, level, step, output_dir, model_name)
+                image_path = "Null"
+            else:         # use image
+                image_path = os.path.join(
+                    output_dir,
+                    "process_images",
+                    model_name,
+                    game["name"],
+                    f"level_{level}",
+                    f"step_{step-1}.png"
+                )
+
+        current_prompt = add_conversation_history(prompt, model_name, game["name"], level) if use_history else prompt
+
+        output = inferencer.infer(system_prompt, current_prompt, image_path, temperature)
+
+        save_output(level_output_path, model_name, game["name"], level, step, output)
+
+        # Evaluate the game with the model output
+        current_level = level_states.get(level) if step > 1 else None
+        is_valid, updated_level = evaluation(game["name"], level, model_name, level_output_path, step, levels, current_level, output_dir, step_states)
+
+        level_states[level] = updated_level
+        step_states[step] = updated_level
+        
+        if is_valid:
+            return level_states
+            
+        step += 1
+    
+    return level_states
+
+
 
 # Function to evaluate the game using the model output
 def evaluation(game_name, level, model_name, moves_path, step, levels, current_level, output_dir, step_states):
@@ -186,7 +193,7 @@ def main():
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
     parser.add_argument('--model_name', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='claude35',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
-    parser.add_argument('--use_system_prompt', default=True,
+    parser.add_argument('--use_system_prompt', default=False,
                         help='Whether use system prompt for closed source models')
     parser.add_argument('--temperature', default=0,
                         help='The hyperparameter of generation')

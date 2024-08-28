@@ -81,8 +81,8 @@ GAMES = [
 # MODELS = ["qwen_vl_max"]
 MODELS = ["blip2"]
 # Configuration for inference levels and output directory
-START_LEVEL = 3
-END_LEVEL = 3
+START_LEVEL = 1
+END_LEVEL = 20
 MAX_STEPS = 50
 
 # one step

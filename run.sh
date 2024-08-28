@@ -1,9 +1,11 @@
 #!/bin/bash
 LOG_DIR="logs"
 mkdir -p "$LOG_DIR"
-MODEL="claude35" 
+MODEL="gpt4v" # 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'
 
-MODES=("base_image" "history_image" "base_text" "history_text")
+MODES=("history_image")
+# MODES=("base_image" "history_image" "base_text" "history_text")
+
 
 for MODE in "${MODES[@]}"; do
     OUTPUT_IMAGE_BASE_DIR="outputs/multi_step/image_text/base"

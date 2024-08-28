@@ -6,7 +6,7 @@ import argparse
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from src.model import QwenVLChatInferencer, BLIP2Inferencer
-from src.config import GAMES, MODELS, START_LEVEL, END_LEVEL, OUTPUT_OS_DIR, OUTPUT_TEXT_OS_DIR
+from config_0823 import GAMES, MODELS, START_LEVEL, END_LEVEL, OUTPUT_OS_DIR, OUTPUT_TEXT_OS_DIR
 from src.multi_step.prompt_text_level import add_level_to_prompt
 from src.one_step.score import generate_score
 # game
