@@ -33,6 +33,61 @@ def create_game_state(level, current_state=None):
     }
     return state
 
+
+def extract_move(input_string):
+    if input_string:
+        pattern = r'\{.*?\}'
+        match = re.search(pattern, input_string)
+        if match:
+            json_string = match.group(0)
+            try:
+                move = json.loads(json_string)
+                return move["output"]
+            except Exception as e:
+                print(f"Error: {e}")
+    return None
+def is_valid_move(state, tile):
+    if not isinstance(tile, int):  # tile should be an integer
+        return False    
+    if tile > 15:                  # tile should less than 16
+        return False
+
+    n = state['n']
+    position = state['position']
+    zero_row, zero_col = None, None
+    tile_row, tile_col = None, None
+    # Find the empty tile (0) and the tile to be moved
+    for row in range(n):
+        for col in range(n):
+            if position[row][col] == 0:
+                zero_row, zero_col = row, col
+            elif position[row][col] == tile:
+                tile_row, tile_col = row, col
+    # Check if the tile is adjacent to the empty space
+    if (abs(zero_row - tile_row) == 1 and zero_col == tile_col) or \
+       (abs(zero_col - tile_col) == 1 and zero_row == tile_row):
+        return True
+    
+    return False
+def apply_move(state, tile):
+    n = state['n']
+    position = [row[:] for row in state['position']]  # Create a copy of the position
+    
+    zero_row, zero_col = None, None
+    tile_row, tile_col = None, None
+    
+    # Find the empty tile (0) and the tile to be moved
+    for row in range(n):
+        for col in range(n):
+            if position[row][col] == 0:
+                zero_row, zero_col = row, col
+            elif position[row][col] == tile:
+                tile_row, tile_col = row, col
+    
+    # Swap the tile with the empty space
+    position[zero_row][zero_col], position[tile_row][tile_col] = position[tile_row][tile_col], position[zero_row][zero_col]
+    
+    return {'n': n, 'position': position}
 def draw_tile(surface, value, x, y):
     pygame.draw.rect(surface, TILE_COLOR, (x, y, TILE_SIZE, TILE_SIZE))
     pygame.draw.rect(surface, (0, 0, 0), (x, y, TILE_SIZE, TILE_SIZE), 2)
@@ -71,62 +126,7 @@ def save_game_state_to_file(state, output_path, level, step, model):
         json.dump(data, f)
         f.write('\n')
 
-def is_valid_move(state, tile):
-    if not isinstance(tile, int):  # tile should be an integer
-        return False    
-    if tile > 15:                  # tile should less than 16
-        return False
 
-    n = state['n']
-    position = state['position']
-    zero_row, zero_col = None, None
-    tile_row, tile_col = None, None
-    # Find the empty tile (0) and the tile to be moved
-    for row in range(n):
-        for col in range(n):
-            if position[row][col] == 0:
-                zero_row, zero_col = row, col
-            elif position[row][col] == tile:
-                tile_row, tile_col = row, col
-    # Check if the tile is adjacent to the empty space
-    if (abs(zero_row - tile_row) == 1 and zero_col == tile_col) or \
-       (abs(zero_col - tile_col) == 1 and zero_row == tile_row):
-        return True
-    
-    return False
-
-def extract_move(input_string):
-    if input_string:
-        pattern = r'\{.*?\}'
-        match = re.search(pattern, input_string)
-        if match:
-            json_string = match.group(0)
-            try:
-                move = json.loads(json_string)
-                return move["output"]
-            except Exception as e:
-                print(f"Error: {e}")
-    return None
-
-def apply_move(state, tile):
-    n = state['n']
-    position = [row[:] for row in state['position']]  # Create a copy of the position
-    
-    zero_row, zero_col = None, None
-    tile_row, tile_col = None, None
-    
-    # Find the empty tile (0) and the tile to be moved
-    for row in range(n):
-        for col in range(n):
-            if position[row][col] == 0:
-                zero_row, zero_col = row, col
-            elif position[row][col] == tile:
-                tile_row, tile_col = row, col
-    
-    # Swap the tile with the empty space
-    position[zero_row][zero_col], position[tile_row][tile_col] = position[tile_row][tile_col], position[zero_row][zero_col]
-    
-    return {'n': n, 'position': position}
 
 def active_move(previous_state, state):
     return previous_state != state

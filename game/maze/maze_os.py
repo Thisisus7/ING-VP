@@ -40,7 +40,7 @@ def create_maze(level):
 
 def extract_moves(input_string):
     if input_string:
-        pattern = r'\{.*?\}'
+        pattern = r'(?s)\{.*?"output"\s*:\s*"(.*?)".*?\}'
         match = re.search(pattern, input_string)
         if match:
             json_string = match.group(0)
@@ -72,6 +72,7 @@ def move_agent(maze, agent_pos, moves):
             x += 1
             active_moves += 1
 
+    total_moves = 8 if total_moves < 8 else total_moves
     is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
     
     return (x, y), is_active
@@ -115,6 +116,8 @@ def evaluate_moves(levels, moves, model_name, output_base_dir):
     level_num = moves['level']
     level = levels[level_num - 1]
 
+    print(f"Processing model {model_name}, maze, level {level_num}")
+    
     maze, start_pos, end_pos = create_maze(level)
     extract_move = extract_moves(moves['output'])
     if extract_move:

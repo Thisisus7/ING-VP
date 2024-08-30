@@ -36,7 +36,7 @@ def create_game_state(level):
 
 def extract_move(input_string):
     if input_string:
-        pattern = r'\{.*?\}'
+        pattern = r'\{\s*"output":\s*(\[\s*(?:"[A-Z]{2}"\s*(?:,\s*"[A-Z]{2}"\s*)*)\])\s*\}'
         match = re.search(pattern, input_string)
         if match:
             json_string = match.group(0)
@@ -103,6 +103,8 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir):
     level_num = last_move['level']
     level = json.loads(levels[0][level_num-1])
 
+    print(f"Processing model {model_name}, hanoi, level {level_num}")
+
     state = create_game_state(level)
         
     total_moves = 0
@@ -121,6 +123,8 @@ def evaluate_moves(levels, last_move, model_name, output_base_dir):
                 if previous_state != (state[source][-1] if state[source] else None):
                     active_moves += 1
 
+    
+    total_moves = 8 if total_moves < 8 else total_moves
     is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
 
     # Save intermediate states

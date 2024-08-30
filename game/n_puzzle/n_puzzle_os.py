@@ -31,18 +31,25 @@ def create_game_state(level):
 
 def extract_move(input_string):
     if input_string:
-        pattern = r'\{.*?\}'
+        pattern = r'\{\s*"output":\s*(\[(?:\s*\d+\s*,?)*\s*\])\s*\}'
         match = re.search(pattern, input_string)
+        print("match: ", match)
         if match:
             json_string = match.group(0)
+            print("json_string: ", json_string)
             try:
                 move = json.loads(json_string)
+                print("move: ", move)
                 return move["output"]
             except Exception as e:
                 print(f"Error: {e}")
     return None
 
 def is_valid_move(state, tile):
+    if not isinstance(tile, int):  # tile should be an integer
+        return False    
+    if tile > 15:                  # tile should less than 16
+        return False
     n = state['n']
     position = state['position']
     zero_row, zero_col = None, None
@@ -130,12 +137,12 @@ def validate_solution(state):
 def evaluate_moves(levels, moves, model_name, output_base_dir):
     level_num = moves['level']
     level = json.loads(levels[0][level_num-1])
-
+    print(f"Processing model {model_name}, n-puzzle, level {level_num}")
     state = create_game_state(level)
 
     total_moves = 0
     active_moves = 0
-
+    
     extract_move_result = extract_move(moves['output'])
     if extract_move_result is not None:
         for single_move in extract_move_result:
@@ -144,6 +151,7 @@ def evaluate_moves(levels, moves, model_name, output_base_dir):
                 state = apply_move(state, single_move)
                 active_moves += 1
 
+    total_moves = 8 if total_moves < 8 else total_moves
     is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
 
     # Save intermediate states

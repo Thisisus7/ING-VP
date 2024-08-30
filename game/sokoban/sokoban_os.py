@@ -31,7 +31,7 @@ def create_game_state(level):
 
 def extract_move(input_string):
     if input_string:
-        pattern = r'\{.*?\}'
+        pattern = r'(?s)\{.*?"output"\s*:\s*"(.*?)".*?\}'
         match = re.search(pattern, input_string)
         if match:
             json_string = match.group(0)
@@ -78,6 +78,8 @@ def move_worker(state, directions):
             state[next_y][next_x] = '$' if state[next_y][next_x] == ' ' else '*'
             active_moves += 1
     
+
+    total_moves = 8 if total_moves < 8 else total_moves
     is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
 
     return state, is_active
@@ -120,6 +122,7 @@ def evaluate_moves(levels, moves, model_name, output_base_dir):
 
     level_num = moves['level']
     level = levels[level_num - 1]
+    print(f"Processing model {model_name}, sokoban, level {level_num}")
 
     state = create_game_state(level)
     directions = extract_move(moves['output'])

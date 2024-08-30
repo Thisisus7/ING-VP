@@ -28,7 +28,7 @@ def create_game_state(level):
 
 def extract_coordinates(input_string):
     if input_string:
-        pattern = r'\{.*?\}'
+        pattern = r'\{\s*"output":\s*(\[\s*(?:\[\d+,\s*\d+\]\s*,?\s*)*\])\s*\}' 
         lst = [0, 1, 2, 3, 4, 5, 6, 7]
         match = re.search(pattern, input_string)
         if match:
@@ -71,6 +71,7 @@ def is_valid_move(queens, new_queens):
             valid_moves.append(new_queen)
             active_moves += 1
     
+    total_moves = 8 if total_moves < 8 else total_moves
     is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
     return valid_moves, is_active
 
@@ -121,7 +122,7 @@ def validate_solution(queens):
 
 def evaluate_moves(levels, moves, model_name, output_base_dir):
     is_active = 0.0
-
+    print(f"Processing model {model_name}, n-queens, level {level_num}")
     level_num = moves['level']
     levels = [json.loads(json_str) for json_str in levels[0]]  # convert string to dict
     level = next(l for l in levels if l['level'] == level_num)

@@ -20,7 +20,8 @@ RED = (255, 0, 0)
 
 def extract_move(input_string):
     if input_string:
-        pattern = r'\{((?:[^{}]|\{[^{}]*\})*)\}'
+        # pattern = r'\{((?:[^{}]|\{[^{}]*\})*)\}'
+        pattern = r'\{\s*"output":\s*\{([^}]*)\}\s*\}'
         match = re.search(pattern, input_string)
         if match:
             json_string = match.group(0)
@@ -52,6 +53,7 @@ def update_game_state(state, moves):
 
         state['position'] = ''.join(new_board)
 
+    total_moves = 10 if total_moves < 10 else total_moves
     is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
 
     return state, added_positions, is_active
@@ -116,6 +118,7 @@ def validate_solution(board, solution):
 def evaluate_moves(levels, last_move, model_name, output_base_dir):
     is_active = 0.0
 
+    print(f"Processing model {model_name}, sudoku, level {level_num}")
     level_num = last_move['level']
     state = json.loads(levels[0][level_num-1])
 
