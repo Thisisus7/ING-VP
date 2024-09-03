@@ -117,9 +117,9 @@ def validate_solution(board, solution):
 
 def evaluate_moves(levels, last_move, model_name, output_base_dir):
     is_active = 0.0
-
-    print(f"Processing model {model_name}, sudoku, level {level_num}")
     level_num = last_move['level']
+    print(f"Processing model {model_name}, sudoku, level {level_num}")
+
     state = json.loads(levels[0][level_num-1])
 
     extracted_move = extract_move(last_move['output'])

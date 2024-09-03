@@ -122,8 +122,8 @@ def validate_solution(queens):
 
 def evaluate_moves(levels, moves, model_name, output_base_dir):
     is_active = 0.0
-    print(f"Processing model {model_name}, n-queens, level {level_num}")
     level_num = moves['level']
+    print(f"Processing model {model_name}, n-queens, level {level_num}")
     levels = [json.loads(json_str) for json_str in levels[0]]  # convert string to dict
     level = next(l for l in levels if l['level'] == level_num)
     

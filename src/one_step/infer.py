@@ -5,8 +5,8 @@ import json
 import argparse
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from src.model import QwenVLChatInferencer, BLIP2Inferencer
-from config_0823 import GAMES, MODELS, START_LEVEL, END_LEVEL, OUTPUT_OS_DIR, OUTPUT_TEXT_OS_DIR
+from src.model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, Claude35Inferencer, GPT4VInference, QwenVLMaxInference, Gemini15ProInference
+from src.config_0823 import GAMES, MODELS, START_LEVEL, END_LEVEL, OUTPUT_OS_DIR, OUTPUT_TEXT_OS_DIR
 from src.multi_step.prompt_text_level import add_level_to_prompt
 from src.one_step.score import generate_score
 # game
@@ -16,6 +16,7 @@ from game.n_queens import n_queens_os
 from game.sudoku import sudoku_os
 from game.hanoi import hanoi_os
 from game.n_puzzle import n_puzzle_os
+from multiprocessing import Pool
 
 # Load levels from a file
 def load_levels(filename):
@@ -45,10 +46,17 @@ def load_prompt(path):
 def create_inferencer(model_name):
     inferencer_classes = {
         'blip2': BLIP2Inferencer,
-        # "qwen_vl_chat": QwenVLChatInferencer,
+        'qwen_vl_chat': QwenVLChatInferencer,
+        'gpt4o': GPT4oInferencer,
+        'claude35': Claude35Inferencer,
+        'gpt4v': GPT4VInference,
+        'qwen_vl_max': QwenVLMaxInference,
+        'gemini_15_pro': Gemini15ProInference,
+
         # Add more model inferencer mappings here
     }
     return inferencer_classes[model_name]()
+
 
 # Save the model output to a JSON file
 def save_output(path, model_name, game_name, level, output):
@@ -63,6 +71,20 @@ def save_output(path, model_name, game_name, level, output):
         json.dump(output_data, file, ensure_ascii=False)
         file.write('\n')
 
+def process_level(prompt, output_dir, model_name, game, use_text, inferencer, level, levels):
+
+    level_output_path = os.path.join(output_dir, "models", model_name, f"{game['name']}.jsonl")
+
+    if use_text:
+        prompt = add_level_to_prompt(prompt, game, level, 1, output_dir, model_name)
+        image_path = "Null"
+    else:
+        image_path = game["level_image_path"].format(level)
+
+    output = inferencer.infer('', prompt, image_path, 0)
+    save_output(level_output_path, model_name, game["name"], level, output)
+    evaluation(game["name"], level, model_name, level_output_path, levels, output_dir)
+
 def inference(game, model_name, inferencer, levels, use_text):
     if use_text:
         output_dir = OUTPUT_TEXT_OS_DIR
@@ -73,19 +95,11 @@ def inference(game, model_name, inferencer, levels, use_text):
 
     prompt = load_prompt(prompt_path)
 
-    for level in range(START_LEVEL, END_LEVEL + 1):
-        level_output_path = os.path.join(output_dir, "models", model_name, f"{game['name']}.jsonl")
+    levels_to_process = list(range(START_LEVEL, END_LEVEL + 1))
+    args_list = [(prompt, output_dir, model_name, game, use_text, inferencer, level, levels) for level in levels_to_process]
 
-        if use_text:
-            prompt = add_level_to_prompt(prompt, game, level, 1, output_dir, model_name)
-            image_path = "Null"
-        else:
-            image_path = game["level_image_path"].format(level)
-
-
-        output = inferencer.infer(prompt, image_path)
-        save_output(level_output_path, model_name, game["name"], level, output)
-        evaluation(game["name"], level, model_name, level_output_path, levels, output_dir)
+    with Pool(processes=16) as pool:  # You can adjust the number of processes as needed
+        results = pool.starmap(process_level, args_list)
 
 # Function to evaluate the game using the model output
 def evaluation(game_name, level_number, model_name, moves_path, levels, output_dir):
@@ -115,13 +129,14 @@ def evaluation(game_name, level_number, model_name, moves_path, levels, output_d
 
 def main():
     parser = argparse.ArgumentParser(description="Inference mode")
-    parser.add_argument('--mode', choices=["image", "text"], default="image",
+    parser.add_argument('--mode', choices=["image", "text"], default="text",
                         help='Inference mode: image-text (default), or text-only')
     args = parser.parse_args()
 
     for model_name in MODELS:
         inferencer = create_inferencer(model_name)
-        inferencer.load_model()
+        if model_name in ['qwen_vl_chat', 'blip2']:
+            inferencer.load_model()
 
         for game in GAMES:
             levels = load_levels(game["levels_path"])

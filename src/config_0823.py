@@ -74,15 +74,18 @@ GAMES = [
 # MODELS = ["gpt4o", "claude35"]
 # MODELS = ["gemini_15_pro", "gpt4o", "claude35", "gpt4v"]
 # MODELS = ["gpt4o", "claude35", "gpt4v"]
+# MODELS = ["claude35", "gpt4v"]
+MODELS = ["gpt4v"]
+# MODELS = ["gpt4o", "claude35", "gpt4v"]
 # MODELS = ["gemini_15_pro"]
 # MODELS = ["gpt4o"]
 # MODELS = ["claude35"]
 # MODELS = ["gpt4v"]
 # MODELS = ["qwen_vl_max"]
-MODELS = ["blip2"]
+# MODELS = ["blip2"]
 # Configuration for inference levels and output directory
 START_LEVEL = 1
-END_LEVEL = 20
+END_LEVEL = 50
 MAX_STEPS = 50
 
 # one step
