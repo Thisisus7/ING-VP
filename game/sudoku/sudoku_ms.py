@@ -72,12 +72,13 @@ def extract_move(input_string):
 def update_game_state(state, move):
     added_positions = set()
     new_board = list(state['current_board'])
-    for pos, value in move.items():
-        row, col = int(pos[0]), int(pos[1])
-        index = row * GRID_SIZE + col
-        if new_board[index] == '0':
-            new_board[index] = str(value)
-            added_positions.add((row, col))
+    pos = next(iter(move))
+    value = move[pos]
+    row, col = int(pos[0]), int(pos[1])
+    index = row * GRID_SIZE + col
+    if new_board[index] == '0':
+        new_board[index] = str(value)
+        added_positions.add((row, col))
     state['current_board'] = ''.join(new_board)
     return state, added_positions
 
