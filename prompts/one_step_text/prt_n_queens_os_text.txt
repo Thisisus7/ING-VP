@@ -1,7 +1,7 @@
 This is a level of the n_queens game.
 Your task is to generate coordinates to complete the n_queens problem on a board where the first queen is already placed.
 
-THe coordinate of the first queen:
+The coordinate of the first queen:
 
 {text_representation_path}
 
