@@ -1,0 +1,1 @@
+Please output only one step and your output must meet required format {"output": "{rod_x}{rod_y}"}. And do not output anything else.

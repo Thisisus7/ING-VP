@@ -1,0 +1,5 @@
+Dictionary representation:
+
+{text_representation_path}
+
+Please output only one step based on the given rules and dictionary representation, and your output must meet required format {"output": "{rod_x}{rod_y}"}. Please do not output anything else.
