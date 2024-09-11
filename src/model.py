@@ -163,22 +163,27 @@ class LLaMA3_72BInference(APIInferencer):
     def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
         response = self.get_correct_response('llama3', system_prompt, prompt, image_path, temperature)
         return response
-     
-class QwenVLMaxInference(APIInferencer):
-    def build_message_content(self, prompt: str, image_url: str):
-        if image_url == "Null":
-            return prompt
-        return [
-            {"type": "text", "text": prompt},
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"{image_url}"
-                },
-            },
-        ]
     
+class QwenVLMaxInference(APIInferencer):
     def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
         response = self.get_correct_response('qwen-vl-max', system_prompt, prompt, image_path, temperature)
         return response
+     
+# class QwenVLMaxInference(APIInferencer):
+#     def build_message_content(self, prompt: str, image_url: str):
+#         if image_url == "Null":
+#             return prompt
+#         return [
+#             {"type": "text", "text": prompt},
+#             {
+#                 "type": "image_url",
+#                 "image_url": {
+#                     "url": f"{image_url}"
+#                 },
+#             },
+#         ]
+    
+#     def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
+#         response = self.get_correct_response('qwen-vl-max', system_prompt, prompt, image_path, temperature)
+#         return response
     

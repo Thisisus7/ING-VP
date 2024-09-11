@@ -5,7 +5,8 @@ import json
 import argparse
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from src.model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, Claude35Inferencer, GPT4VInference, QwenVLMaxInference, Gemini15ProInference
+from src.model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, Claude35Inferencer, GPT4VInference, \
+            QwenVLMaxInference, Gemini15ProInference, GPT4TurboInference, Claude3OpusInference, LLaMA3_72BInference, Qwen2_72BInference
 from src.config_0823 import GAMES, MODELS, START_LEVEL, END_LEVEL, OUTPUT_OS_DIR, OUTPUT_TEXT_OS_DIR
 from src.multi_step.prompt_text_level import add_level_to_prompt
 from src.one_step.score import generate_score
@@ -52,7 +53,10 @@ def create_inferencer(model_name):
         'gpt4v': GPT4VInference,
         'qwen_vl_max': QwenVLMaxInference,
         'gemini_15_pro': Gemini15ProInference,
-
+        'gpt4turbo': GPT4TurboInference,
+        'claude3o': Claude3OpusInference,
+        'llama3_72b': LLaMA3_72BInference,
+        'qwen2_72b': Qwen2_72BInference,
         # Add more model inferencer mappings here
     }
     return inferencer_classes[model_name]()
@@ -98,7 +102,7 @@ def inference(game, model_name, inferencer, levels, use_text):
     levels_to_process = list(range(START_LEVEL, END_LEVEL + 1))
     args_list = [(prompt, output_dir, model_name, game, use_text, inferencer, level, levels) for level in levels_to_process]
 
-    with Pool(processes=16) as pool:  # You can adjust the number of processes as needed
+    with Pool(processes=32) as pool:  # You can adjust the number of processes as needed
         results = pool.starmap(process_level, args_list)
 
 # Function to evaluate the game using the model output
