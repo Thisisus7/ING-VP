@@ -4,7 +4,8 @@ sys.dont_write_bytecode = True
 import json
 import argparse
 
-from model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, Claude35Inferencer, GPT4VInference, QwenVLMaxInference, Gemini15ProInference
+from model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, Claude35Inferencer, GPT4VInference, \
+            QwenVLMaxInference, Gemini15ProInference, GPT4TurboInference, Claude3OpusInference, LLaMA3_72BInference, Qwen2_72BInference
 from config import GAMES, MODELS, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_IMAGE_BASE_DIR, OUTPUT_IMAGE_HIS_DIR, OUTPUT_TEXT_BASE_DIR, OUTPUT_TEXT_HIS_DIR, SYSTEM_PROMPT_SUFFIX, INSTRUCTION_SUFFIX, USER_SUFFIX
 from multi_step.prompt_history import add_conversation_history
 from multi_step.prompt_text_level import add_level_to_prompt
@@ -69,7 +70,10 @@ def create_inferencer(model_name):
         'gpt4v': GPT4VInference,
         'qwen_vl_max': QwenVLMaxInference,
         'gemini_15_pro': Gemini15ProInference,
-
+        'gpt4turbo': GPT4TurboInference,
+        'claude3o': Claude3OpusInference,
+        'llama3_72b': LLaMA3_72BInference,
+        'qwen2_72b': Qwen2_72BInference,
         # Add more model inferencer mappings here
     }
     return inferencer_classes[model_name]()
@@ -108,7 +112,7 @@ def inference(args, game, inferencer, levels, use_history, use_text):
     levels_to_process = list(range(START_LEVEL, END_LEVEL + 1))
     args_list = [(output_dir, model_name, level, use_text, game, use_history, inferencer, system_prompt, prompt, temperature, level_states, levels) for level in levels_to_process]
 
-    with Pool(processes=8) as pool:  # You can adjust the number of processes as needed
+    with Pool(processes=64) as pool:  # You can adjust the number of processes as needed
         results = pool.starmap(process_level, args_list)
 
     for level_state in results:
@@ -198,11 +202,13 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
 # Main function to load models and process games
 def main():
     parser = argparse.ArgumentParser(description="Inference mode")
-    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_image',
+    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_text',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
-    parser.add_argument('--model_name', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='claude35',
+    parser.add_argument('--model_name', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 
+                                                 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2', 
+                                                 'gpt4turbo', 'llama3_72b', 'claude3o', 'qwen2_72b'], default='qwen2_72b',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
-    parser.add_argument('--use_system_prompt', default=False,
+    parser.add_argument('--use_system_prompt', default=True,
                         help='Whether use system prompt for closed source models')
     parser.add_argument('--temperature', default=0,
                         help='The hyperparameter of generation')

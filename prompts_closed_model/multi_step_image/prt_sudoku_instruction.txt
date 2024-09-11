@@ -1,1 +1,0 @@
-Please output only one step and your output must meet required format {"output": {"{row}{column}": {number}}}, and not output anything else:

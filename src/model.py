@@ -63,7 +63,7 @@ class APIInferencer(ABC):
 
     def load_client(self):
         return OpenAI(
-            api_key='',
+            api_key='09c9021c0811db8d65c8bd9dd1df7341',
             base_url="https://idealab.alibaba-inc.com/api/openai/v1",
         )
 
@@ -138,7 +138,32 @@ class Gemini15ProInference(APIInferencer):
     def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
         response = self.get_correct_response('gemini-1.5-pro', system_prompt, prompt, image_path, temperature)
         return response
+
+class GPT4TurboInference(APIInferencer):
+    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.get_correct_response('gpt-4-turbo-128k', system_prompt, prompt, image_path, temperature)
+        return response
     
+class GPT4TurboInference(APIInferencer):
+    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.get_correct_response('claude3_opus', system_prompt, prompt, image_path, temperature)
+        return response
+
+class Claude3OpusInference(APIInferencer):
+    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.get_correct_response('claude3_opus', system_prompt, prompt, image_path, temperature)
+        return response
+
+class Qwen2_72BInference(APIInferencer):
+    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.get_correct_response('qwen2-72b-instruct', system_prompt, prompt, image_path, temperature)
+        return response
+
+class LLaMA3_72BInference(APIInferencer):
+    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
+        response = self.get_correct_response('llama3', system_prompt, prompt, image_path, temperature)
+        return response
+     
 class QwenVLMaxInference(APIInferencer):
     def build_message_content(self, prompt: str, image_url: str):
         if image_url == "Null":
@@ -156,3 +181,4 @@ class QwenVLMaxInference(APIInferencer):
     def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
         response = self.get_correct_response('qwen-vl-max', system_prompt, prompt, image_path, temperature)
         return response
+    
