@@ -1,16 +1,18 @@
 import os
+import sys
 import json
 import csv
 from collections import defaultdict
+sys.dont_write_bytecode = True
 
 def process_jsonl(file_path):
-    """Process a single JSONL file and calculate the percentage of valid entries and average active score."""
+    """Process a single JSONL file and calculate the percentage of valid entries and average eff score."""
     if not os.path.exists(file_path):
         return 0, 0
     
     valid_count = 0
     total_count = 0
-    active_score_sum = 0
+    eff_score_sum = 0
     
     with open(file_path, 'r') as f:
         for line in f:
@@ -18,11 +20,11 @@ def process_jsonl(file_path):
             total_count += 1
             if obj.get('is_valid', False):
                 valid_count += 1
-            active_score_sum += obj.get('is_active', 0)
+            eff_score_sum += obj.get('is_active', 0)
     
     valid_percentage = round(valid_count / total_count * 100, 1) if total_count > 0 else 0
-    active_score = round(active_score_sum / total_count, 1) if total_count > 0 else 0
-    return valid_percentage, active_score
+    eff_score = round(eff_score_sum / total_count, 1) if total_count > 0 else 0
+    return valid_percentage, eff_score
 
 def generate_score(base_dir='outputs/one_step'):
     """Generate scores for each game and model, and save results to CSV files."""
@@ -40,14 +42,14 @@ def generate_score(base_dir='outputs/one_step'):
             continue
         
         print(f"Processing setting: {setting1}")
-        valid_scores, active_scores = process_models(eval_path, games)
+        valid_scores, eff_scores = process_models(eval_path, games)
         save_scores_to_csv(valid_scores, output_dir, setting1, games, "valid")
-        save_scores_to_csv(active_scores, output_dir, setting1, games, "active")
+        save_scores_to_csv(eff_scores, output_dir, setting1, games, "eff")
 
 def process_models(eval_path, games):
     """Process all models for a given evaluation path."""
     valid_scores = defaultdict(dict)
-    active_scores = defaultdict(dict)
+    eff_scores = defaultdict(dict)
     
     for model in os.listdir(eval_path):
         model_path = os.path.join(eval_path, model)
@@ -56,14 +58,14 @@ def process_models(eval_path, games):
         for game in games:
             game_file = os.path.join(model_path, f"{game}.jsonl")
             if os.path.exists(game_file):
-                valid_score, active_score = process_jsonl(game_file)
+                valid_score, eff_score = process_jsonl(game_file)
                 valid_scores[model][game] = valid_score
-                active_scores[model][game] = active_score
+                eff_scores[model][game] = eff_score
             else:
                 valid_scores[model][game] = '-'
-                active_scores[model][game] = '-'
+                eff_scores[model][game] = '-'
     
-    return valid_scores, active_scores
+    return valid_scores, eff_scores
 
 def calculate_overall_score(scores):
     """Calculate the overall score for a model."""
@@ -72,7 +74,7 @@ def calculate_overall_score(scores):
 
 def save_scores_to_csv(scores, output_dir, setting, games, score_type):
     """Save the calculated scores to a CSV file."""
-    file_prefix = "active_" if score_type == "active" else ""
+    file_prefix = "eff_" if score_type == "eff" else "acc_"
     output_file = os.path.join(output_dir, f"{file_prefix}{setting}.csv")
     
     with open(output_file, 'w', newline='') as csvfile:

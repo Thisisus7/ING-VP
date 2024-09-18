@@ -51,26 +51,26 @@ def generate_score(base_dir='outputs/multi_step'):
     output_dir = os.path.join(base_dir, 'final')
     os.makedirs(output_dir, exist_ok=True)
     
-    for setting1 in os.listdir(base_dir):
+    for setting1 in os.listdir(base_dir):                    # ["image_text", "text_only"]
         setting1_path = os.path.join(base_dir, setting1)
         if not os.path.isdir(setting1_path) or setting1 == 'final':
             continue
         
-        for setting2 in os.listdir(setting1_path):
+        for setting2 in os.listdir(setting1_path):           # ["base", "history"]
             setting2_path = os.path.join(setting1_path, setting2)
             if not os.path.isdir(setting2_path):
                 continue
             
-            eval_path = os.path.join(setting2_path, 'eval')
+            eval_path = os.path.join(setting2_path, 'eval')  # ["eval"]
             if not os.path.exists(eval_path):
                 continue
             
             valid_scores = defaultdict(dict)
             active_scores = defaultdict(dict)
             
-            for model in os.listdir(eval_path):
+            for model in os.listdir(eval_path):              # ["model1", "model2"]
                 model_path = os.path.join(eval_path, model)
-                for game in games:
+                for game in games:                           # six games
                     game_dir = os.path.join(model_path, game)
                     if os.path.exists(game_dir):
                         valid_score, active_score = calculate_scores(game_dir)
@@ -83,7 +83,7 @@ def generate_score(base_dir='outputs/multi_step'):
             combined_setting = f"{setting1}_{setting2}"
             
             # Generate valid scores CSV
-            valid_output_file = os.path.join(output_dir, f'{combined_setting}.csv')
+            valid_output_file = os.path.join(output_dir, f'acc_{combined_setting}.csv')
             with open(valid_output_file, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow([''] + games + ['overall'])
@@ -93,7 +93,7 @@ def generate_score(base_dir='outputs/multi_step'):
             print(f"Generated {valid_output_file}")
             
             # Generate active scores CSV
-            active_output_file = os.path.join(output_dir, f'active_{combined_setting}.csv')
+            active_output_file = os.path.join(output_dir, f'eff_{combined_setting}.csv')
             with open(active_output_file, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow([''] + games + ['overall'])

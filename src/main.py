@@ -6,9 +6,9 @@ import argparse
 
 from model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, Claude35Inferencer, GPT4VInference, QwenVLMaxInference, Gemini15ProInference
 from config import GAMES, MODELS, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_IMAGE_BASE_DIR, OUTPUT_IMAGE_HIS_DIR, OUTPUT_TEXT_BASE_DIR, OUTPUT_TEXT_HIS_DIR, SYSTEM_PROMPT_SUFFIX, INSTRUCTION_SUFFIX, USER_SUFFIX
+from summary import summarize
 from multi_step.prompt_history import add_conversation_history
 from multi_step.prompt_text_level import add_level_to_prompt
-from multi_step.score import generate_score
 # game
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from game.maze import maze_ms
@@ -219,7 +219,7 @@ def main():
     
     inferencer.cleanup()
 
-    generate_score()
+    summarize()  # also compute one-step
 
 if __name__ == "__main__":
     main()
