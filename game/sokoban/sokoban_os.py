@@ -88,7 +88,7 @@ def move_worker(state, directions):
 def draw_game_state(state, output_path):
     images = load_images()
     height = len(state)
-    width = len(state[0])
+    width = max(len(row) for row in state)
     screen = pygame.Surface((width * TILE_SIZE, height * TILE_SIZE))
     
     for y, row in enumerate(state):
@@ -107,6 +107,9 @@ def draw_game_state(state, output_path):
                 screen.blit(images['worker_dock'], (x * TILE_SIZE, y * TILE_SIZE))
             else:
                 screen.blit(images['floor'], (x * TILE_SIZE, y * TILE_SIZE))
+        # Fill the rest of the row with floor tiles if it's shorter than the maximum width
+        for x in range(len(row), width):
+            screen.blit(images['floor'], (x * TILE_SIZE, y * TILE_SIZE))
     
     pygame.image.save(screen, output_path)
 
