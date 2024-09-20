@@ -52,38 +52,48 @@ def extract_moves(input_string):
     return None
 
 # Function to move the agent within the maze
-def move_agent(maze, agent_pos, moves):
+def move_agent(maze, agent_pos, moves, end_pos):
     x, y = agent_pos
     total_moves = 0
     active_moves = 0
+    path = [agent_pos]
+    reached_end = False
 
     for move in moves:
+        if reached_end:
+            break
         total_moves += 1
-        if move == 'U' and y > 0 and maze[y - 1][x] == ' ':
-            y -= 1
+        new_x, new_y = x, y
+        if move == 'U' and y > 0:
+            new_y -= 1
+        elif move == 'D' and y + 1 < len(maze):
+            new_y += 1
+        elif move == 'L' and x > 0:
+            new_x -= 1
+        elif move == 'R' and x + 1 < len(maze[y]):
+            new_x += 1
+        
+        if maze[new_y][new_x] in [' ', 'X']:  # Allow moving to empty space or end position
+            x, y = new_x, new_y
             active_moves += 1
-        elif move == 'D' and y + 1 < len(maze) and maze[y + 1][x] == ' ':
-            y += 1
-            active_moves += 1
-        elif move == 'L' and x > 0 and maze[y][x - 1] == ' ':
-            x -= 1
-            active_moves += 1
-        elif move == 'R' and x + 1 < len(maze[y]) and maze[y][x + 1] == ' ':
-            x += 1
-            active_moves += 1
+            path.append((x, y))
+            if (x, y) == end_pos:
+                reached_end = True
 
-    total_moves = 8 if total_moves < 8 else total_moves
+    total_moves = max(8, total_moves)
     is_active = round(active_moves / total_moves * 100, 2) if total_moves > 0 else 0.0
     
-    return (x, y), is_active
+    return (x, y), is_active, path, reached_end
 
-def update_maze(maze, old_pos, new_pos, end_pos):
-    if old_pos != new_pos:
-        maze[old_pos[1]][old_pos[0]] = ' '
-    if new_pos == end_pos:
-        maze[new_pos[1]][new_pos[0]] = 'X'
+def update_maze(maze, path, end_pos, reached_end):
+    for x, y in path[:-1]:
+        maze[y][x] = '.'  # Mark the path
+    
+    last_pos = path[-1]
+    if reached_end:
+        maze[last_pos[1]][last_pos[0]] = 'X'  # Keep 'X' if reached
     else:
-        maze[new_pos[1]][new_pos[0]] = 'S'
+        maze[last_pos[1]][last_pos[0]] = 'S'  # Place 'S' at the final position
 
     return maze
 
@@ -121,10 +131,15 @@ def evaluate_moves(levels, moves, model_name, output_base_dir):
     maze, start_pos, end_pos = create_maze(level)
     extract_move = extract_moves(moves['output'])
     if extract_move:
-        new_pos, is_active = move_agent(maze, start_pos, extract_move)   
-        maze = update_maze(maze, start_pos, new_pos, end_pos)  
+        new_pos, is_active, path, reached_end = move_agent(maze, start_pos, extract_move, end_pos)   
+        maze = update_maze(maze, path, end_pos, reached_end)  
+        
+        # Check if the path is valid and reaches the end
+        is_valid = reached_end and all(maze[y][x] in [' ', 'S', 'X', '.'] for x, y in path)
     else:
         new_pos = start_pos
+        path = [start_pos]
+        reached_end = False
 
     # Save intermediate states
     image_dir = os.path.join(output_base_dir, "process_images",  model_name, "maze")
