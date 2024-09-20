@@ -1,5 +1,5 @@
 This is a number string of a level of the Sudoku game.
-Please finish the sudoku puzzle based on the number string provided, one step at a time.
+Please finish the sudoku puzzle based on the number string provided.
 
 Number string:
 
