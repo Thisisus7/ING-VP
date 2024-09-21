@@ -11,13 +11,13 @@ def process_jsonl(file_path):
         return 0, 0
     
     valid_count = 0
-    total_count = 0
+    total_count = 50
     eff_score_sum = 0
     
     with open(file_path, 'r') as f:
         for line in f:
             obj = json.loads(line)
-            total_count += 1
+            # total_count += 1
             if obj.get('is_valid', False):
                 valid_count += 1
             eff_score_sum += obj.get('is_active', 0)
@@ -67,10 +67,16 @@ def process_models(eval_path, games):
     
     return valid_scores, eff_scores
 
-def calculate_overall_score(scores):
+def calculate_overall_score(scores, games):
     """Calculate the overall score for a model."""
-    valid_scores = [scores.get(game, 0) if scores.get(game) != '-' else 0 for game in scores]
-    return round(sum(valid_scores) / len(valid_scores), 1)
+    valid_scores = []
+    for game in games:
+        score = scores.get(game, '-')
+        if score != '-':
+            valid_scores.append(score)
+        else:
+            valid_scores.append(0)
+    return round(sum(valid_scores) / len(games), 1)
 
 def save_scores_to_csv(scores, output_dir, setting, games, score_type):
     """Save the calculated scores to a CSV file."""
@@ -81,7 +87,7 @@ def save_scores_to_csv(scores, output_dir, setting, games, score_type):
         writer = csv.writer(csvfile)
         writer.writerow([''] + games + ['overall'])
         for model, game_scores in scores.items():
-            overall_score = calculate_overall_score(game_scores)
+            overall_score = calculate_overall_score(game_scores, games)
             writer.writerow([model] + [game_scores.get(game, '-') for game in games] + [overall_score])
     
     print(f"Generated {output_file}")
