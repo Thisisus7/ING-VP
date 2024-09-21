@@ -11,12 +11,12 @@ DENOMINATOR = END_LEVEL - START_LEVEL + 1
 
 def process_jsonl(file_path):
     if not os.path.exists(file_path):
-        return 0, 0
-    
+        return 0, 0, 0
+
     total_count = 0
     active_count = 0
     last_valid = False
-    
+
     with open(file_path, 'r') as f:
         for line in f:
             obj = json.loads(line)
@@ -24,27 +24,35 @@ def process_jsonl(file_path):
             if obj.get('is_active', False):
                 active_count += 1
             last_valid = obj.get('is_valid', False)
-    
-    active_ratio = active_count / total_count if total_count > 0 else 0
-    return 1 if last_valid else 0, active_ratio
+
+    return 1 if last_valid else 0, active_count, total_count
+
 
 def calculate_scores(game_dir):
     valid_score = 0
-    active_ratios = []  # contains active_ratio for each level
-    
+    total_active_count = 0
+    total_move_count = 0
+
     for level in range(START_LEVEL, END_LEVEL + 1):
         file_path = os.path.join(game_dir, f'level_{level}.jsonl')
-        valid, active_ratio = process_jsonl(file_path)
+        valid, active_count, move_count = process_jsonl(file_path)
         valid_score += valid
-        active_ratios.append(active_ratio)
-    
-    valid_score = round(valid_score / DENOMINATOR * 100, 1)
-    active_score = round(sum(active_ratios) / len(active_ratios) * 100, 1)
-    return valid_score, active_score
+        total_active_count += active_count
+        total_move_count += move_count
 
-def calculate_overall_score(scores):
-    valid_scores = [scores.get(game, 0) if scores.get(game) != '-' else 0 for game in scores]
-    return round(sum(valid_scores) / len(valid_scores), 1)
+    valid_score = round(valid_score / DENOMINATOR * 100, 1)
+    active_score = round(total_active_count / total_move_count * 100, 1) if total_move_count > 0 else 0
+    return valid_score, active_score
+    
+def calculate_overall_score(scores, games):
+    valid_scores = []
+    for game in games:
+        score = scores.get(game, '-')
+        if score == '-':
+            valid_scores.append(0)
+        else:
+            valid_scores.append(score)
+    return round(sum(valid_scores) / len(games), 1)
 
 def generate_score(base_dir='outputs/multi_step'):
     games = ['maze', 'sokoban', 'n_queens', 'n_puzzle', 'hanoi', 'sudoku']
@@ -88,7 +96,7 @@ def generate_score(base_dir='outputs/multi_step'):
                 writer = csv.writer(csvfile)
                 writer.writerow([''] + games + ['overall'])
                 for model, game_scores in valid_scores.items():
-                    overall_score = calculate_overall_score(game_scores)
+                    overall_score = calculate_overall_score(game_scores, games)
                     writer.writerow([model] + [game_scores.get(game, '-') for game in games] + [overall_score])
             print(f"Generated {valid_output_file}")
             
@@ -98,7 +106,7 @@ def generate_score(base_dir='outputs/multi_step'):
                 writer = csv.writer(csvfile)
                 writer.writerow([''] + games + ['overall'])
                 for model, game_scores in active_scores.items():
-                    overall_score = calculate_overall_score(game_scores)
+                    overall_score = calculate_overall_score(game_scores, games)
                     writer.writerow([model] + [game_scores.get(game, '-') for game in games] + [overall_score])
             print(f"Generated {active_output_file}")
 
