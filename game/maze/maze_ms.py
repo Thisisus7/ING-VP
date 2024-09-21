@@ -59,13 +59,14 @@ def find_end_position(maze):
 def move_agent(maze, agent_pos, move):
     x, y = agent_pos
     new_pos = agent_pos
-    if move == 'U' and y > 0 and maze[y - 1][x] == ' ':
+    target_cells = (' ', 'X')
+    if move == 'U' and y > 0 and maze[y - 1][x] in target_cells:
         return (x, y - 1)
-    elif move == 'D' and y + 1 < len(maze) and maze[y + 1][x] == ' ':
+    elif move == 'D' and y + 1 < len(maze) and maze[y + 1][x] in target_cells:
         return (x, y + 1)
-    elif move == 'L' and x > 0 and maze[y][x - 1] == ' ':
+    elif move == 'L' and x > 0 and maze[y][x - 1] in target_cells:
         return (x - 1, y)
-    elif move == 'R' and x + 1 < len(maze[y]) and maze[y][x + 1] == ' ':
+    elif move == 'R' and x + 1 < len(maze[y]) and maze[y][x + 1] in target_cells:
         return (x + 1, y)
     return new_pos
 
