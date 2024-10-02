@@ -10,6 +10,6 @@ Rules:
 
 Instructions:
 	1. Use JSON as your output format: {"output": [number_1, number_2, number_3, ...]}.
-    2. The number_1, number_2, ... means if number_1 is around the empty space, they will swap positions first; after that, if number_2 is around the empty space, number_2 and the empty space will swap positions too, and so on.
+    2. THe number_1, number_2, ... means if number_1 is around the empty space, they will swap positions first; after that, if number_2 is around the empty space, number_2 and the empty space will swap positions too, and so on.
 
 Your answer:

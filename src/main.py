@@ -18,6 +18,8 @@ from game.sudoku import sudoku_ms
 from game.hanoi import hanoi_ms
 from game.n_puzzle import n_puzzle_ms
 
+from multiprocessing import Pool
+
 
 # Load levels from a file
 def load_levels(filename):
@@ -102,9 +104,16 @@ def inference(args, game, inferencer, levels, use_history, use_text):
                                             load_prompt(game["prompt_ms_path"].format(INSTRUCTION_SUFFIX))
 
     level_states = {}
-    
-    for level in range(START_LEVEL, END_LEVEL + 1):
-        level_states = process_level(output_dir, model_name, level, use_text, game, use_history, inferencer, system_prompt, prompt, temperature, level_states, levels)
+
+    levels_to_process = list(range(START_LEVEL, END_LEVEL + 1))
+    args_list = [(output_dir, model_name, level, use_text, game, use_history, inferencer, system_prompt, prompt, temperature, level_states, levels) for level in levels_to_process]
+
+    with Pool(processes=8) as pool:  # You can adjust the number of processes as needed
+        results = pool.starmap(process_level, args_list)
+
+    for level_state in results:
+        for level, updated_level in level_state.items():
+            level_states[level] = updated_level
         
     level_states.clear()
 
@@ -189,7 +198,7 @@ def evaluation(game_name, level, model_name, moves_path, step, levels, current_l
 # Main function to load models and process games
 def main():
     parser = argparse.ArgumentParser(description="Inference mode")
-    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_text',
+    parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_image',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
     parser.add_argument('--model_name', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='claude35',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
