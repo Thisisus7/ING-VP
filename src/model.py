@@ -63,8 +63,8 @@ class APIInferencer(ABC):
 
     def load_client(self):
         return OpenAI(
-            api_key='09c9021c0811db8d65c8bd9dd1df7341',
-            base_url="https://idealab.alibaba-inc.com/api/openai/v1",
+            api_key='xxxx',
+            base_url="xxxx",
         )
 
     def cleanup(self):
@@ -168,22 +168,4 @@ class QwenVLMaxInference(APIInferencer):
     def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
         response = self.get_correct_response('qwen-vl-max', system_prompt, prompt, image_path, temperature)
         return response
-     
-# class QwenVLMaxInference(APIInferencer):
-#     def build_message_content(self, prompt: str, image_url: str):
-#         if image_url == "Null":
-#             return prompt
-#         return [
-#             {"type": "text", "text": prompt},
-#             {
-#                 "type": "image_url",
-#                 "image_url": {
-#                     "url": f"{image_url}"
-#                 },
-#             },
-#         ]
-    
-#     def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
-#         response = self.get_correct_response('qwen-vl-max', system_prompt, prompt, image_path, temperature)
-#         return response
-    
+
