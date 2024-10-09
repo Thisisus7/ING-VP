@@ -46,9 +46,9 @@ python ./src/summary.py
 
 ## How to add your model?
 
-- Add the model class in src/model.py.
-- Import the model in src/multi_step/infer.py and src/one_step/infer.py.
-- Update the MODEL variable in run.sh to enable selection of different MLLMs for evaluation.
+- Add the model class in `src/model.py`.
+- Import the model in `src/multi_step/infer.py` and `src/one_step/infer.py`.
+- Update the `MODEL` variable in `run.sh` to enable selection of different MLLMs for evaluation.
 
 ## Citation
 
