@@ -6,6 +6,7 @@ sys.dont_write_bytecode = True
 from collections import defaultdict
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import START_LEVEL, END_LEVEL
+from src.multi_step.score import generate_score
 
 DENOMINATOR = END_LEVEL - START_LEVEL + 1
 

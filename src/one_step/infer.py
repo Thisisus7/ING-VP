@@ -5,9 +5,8 @@ import json
 import argparse
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from src.model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, Claude35Inferencer, GPT4VInference, \
-            QwenVLMaxInference, Gemini15ProInference, GPT4TurboInference, Claude3OpusInference, LLaMA3_72BInference, Qwen2_72BInference
-from src.config_0823 import GAMES, MODELS, START_LEVEL, END_LEVEL, OUTPUT_OS_DIR, OUTPUT_TEXT_OS_DIR
+from src.model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, GeminiInferencer, GPT4VInference, GPT4TurboInference
+from src.config import GAMES, START_LEVEL, END_LEVEL, OUTPUT_OS_DIR, OUTPUT_TEXT_OS_DIR
 from src.multi_step.prompt_text_level import add_level_to_prompt
 from src.one_step.score import generate_score
 # game
@@ -49,14 +48,9 @@ def create_inferencer(model_name):
         'blip2': BLIP2Inferencer,
         'qwen_vl_chat': QwenVLChatInferencer,
         'gpt4o': GPT4oInferencer,
-        'claude35': Claude35Inferencer,
         'gpt4v': GPT4VInference,
-        'qwen_vl_max': QwenVLMaxInference,
-        'gemini_15_pro': Gemini15ProInference,
+        'gemini_15_pro': GeminiInferencer,
         'gpt4turbo': GPT4TurboInference,
-        'claude3o': Claude3OpusInference,
-        'llama3_72b': LLaMA3_72BInference,
-        'qwen2_72b': Qwen2_72BInference,
         # Add more model inferencer mappings here
     }
     return inferencer_classes[model_name]()
@@ -89,7 +83,7 @@ def process_level(prompt, output_dir, model_name, game, use_text, inferencer, le
     save_output(level_output_path, model_name, game["name"], level, output)
     evaluation(game["name"], level, model_name, level_output_path, levels, output_dir)
 
-def inference(game, model_name, inferencer, levels, use_text):
+def inference(game, model_name, inferencer, levels, use_text, processes_nums):
     if use_text:
         output_dir = OUTPUT_TEXT_OS_DIR
         prompt_path = game["text_prompt_path"]
@@ -102,7 +96,7 @@ def inference(game, model_name, inferencer, levels, use_text):
     levels_to_process = list(range(START_LEVEL, END_LEVEL + 1))
     args_list = [(prompt, output_dir, model_name, game, use_text, inferencer, level, levels) for level in levels_to_process]
 
-    with Pool(processes=32) as pool:  # You can adjust the number of processes as needed
+    with Pool(processes=processes_nums) as pool:  # You can adjust the number of processes as needed
         results = pool.starmap(process_level, args_list)
 
 # Function to evaluate the game using the model output
@@ -135,20 +129,23 @@ def main():
     parser = argparse.ArgumentParser(description="Inference mode")
     parser.add_argument('--mode', choices=["image", "text"], default="text",
                         help='Inference mode: image-text (default), or text-only')
+    parser.add_argument('--model-name', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='claude35',
+                        help='Inference mode: base_image (default), history_image, base_text, or history_text')
+    parser.add_argument('--processes-nums', type=int, default=4,
+                        help='Number of processes to use for parallel inference.')
     args = parser.parse_args()
 
-    for model_name in MODELS:
-        inferencer = create_inferencer(model_name)
-        if model_name in ['qwen_vl_chat', 'blip2']:
-            inferencer.load_model()
+    inferencer = create_inferencer(args.model_name)
+    if args.model_name in ['qwen_vl_chat', 'blip2']:
+        inferencer.load_model()
 
-        for game in GAMES:
-            levels = load_levels(game["levels_path"])
+    for game in GAMES:
+        levels = load_levels(game["levels_path"])
 
-            if args.mode == 'image':
-                inference(game, model_name, inferencer, levels, use_text=False)
-            elif args.mode == 'text':
-                inference(game, model_name, inferencer, levels, use_text=True)
+        if args.mode == 'image':
+            inference(game, args.model_name, inferencer, levels, use_text=False, processes_nums=args.processes_nums)
+        elif args.mode == 'text':
+            inference(game, args.model_name, inferencer, levels, use_text=True, processes_nums=args.processes_nums)
 
     generate_score()
 

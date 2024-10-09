@@ -4,11 +4,14 @@ sys.dont_write_bytecode = True
 import json
 import argparse
 
-from model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, Claude35Inferencer, GPT4VInference, QwenVLMaxInference, Gemini15ProInference
-from config import GAMES, MODELS, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_IMAGE_BASE_DIR, OUTPUT_IMAGE_HIS_DIR, OUTPUT_TEXT_BASE_DIR, OUTPUT_TEXT_HIS_DIR, SYSTEM_PROMPT_SUFFIX, INSTRUCTION_SUFFIX, USER_SUFFIX
-from summary import summarize
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from src.model import QwenVLChatInferencer, BLIP2Inferencer, GPT4oInferencer, GeminiInferencer, GPT4VInference, GPT4TurboInference
+from src.config import GAMES, START_LEVEL, END_LEVEL, MAX_STEPS, OUTPUT_IMAGE_BASE_DIR, OUTPUT_IMAGE_HIS_DIR, OUTPUT_TEXT_BASE_DIR, OUTPUT_TEXT_HIS_DIR, SYSTEM_PROMPT_SUFFIX, INSTRUCTION_SUFFIX, USER_SUFFIX
+from src.summary import summarize
 from multi_step.prompt_history import add_conversation_history
 from multi_step.prompt_text_level import add_level_to_prompt
+from src.multi_step.score import generate_score
 # game
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from game.maze import maze_ms
@@ -65,18 +68,17 @@ def create_inferencer(model_name):
         'blip2': BLIP2Inferencer,
         'qwen_vl_chat': QwenVLChatInferencer,
         'gpt4o': GPT4oInferencer,
-        'claude35': Claude35Inferencer,
         'gpt4v': GPT4VInference,
-        'qwen_vl_max': QwenVLMaxInference,
-        'gemini_15_pro': Gemini15ProInference,
-
+        'gemini_15_pro': GeminiInferencer,
+        'gpt4turbo': GPT4TurboInference,
         # Add more model inferencer mappings here
     }
     return inferencer_classes[model_name]()
 
+
 # Process each game level with the specified model inferencer
 
-def inference(args, game, inferencer, levels, use_history, use_text):
+def inference(args, game, inferencer, levels, use_history, use_text, processes_nums):
     model_name, temperature, use_system_prompt = args.model_name, args.temperature, args.use_system_prompt
     if use_history and use_text:
         output_dir = OUTPUT_TEXT_HIS_DIR
@@ -88,8 +90,8 @@ def inference(args, game, inferencer, levels, use_history, use_text):
         output_dir = OUTPUT_IMAGE_HIS_DIR
         system_prompt, prompt = '', load_prompt(game["prompt_ms_history_path"].format('_history'))
         if use_system_prompt:
-            system_prompt, prompt = load_prompt(game["text_prompt_ms_history_path"].format(SYSTEM_PROMPT_SUFFIX)), \
-                                            load_prompt(game["text_prompt_ms_history_path"].format(INSTRUCTION_SUFFIX))
+            system_prompt, prompt = load_prompt(game["prompt_ms_history_path"].format(SYSTEM_PROMPT_SUFFIX)), \
+                                            load_prompt(game["prompt_ms_history_path"].format(INSTRUCTION_SUFFIX))
     elif use_text:
         output_dir = OUTPUT_TEXT_BASE_DIR
         system_prompt, prompt = '', load_prompt(game["text_prompt_ms_path"].format('_text'))
@@ -108,7 +110,7 @@ def inference(args, game, inferencer, levels, use_history, use_text):
     levels_to_process = list(range(START_LEVEL, END_LEVEL + 1))
     args_list = [(output_dir, model_name, level, use_text, game, use_history, inferencer, system_prompt, prompt, temperature, level_states, levels) for level in levels_to_process]
 
-    with Pool(processes=8) as pool:  # You can adjust the number of processes as needed
+    with Pool(processes=processes_nums) as pool:  # You can adjust the number of processes as needed
         results = pool.starmap(process_level, args_list)
 
     for level_state in results:
@@ -200,12 +202,14 @@ def main():
     parser = argparse.ArgumentParser(description="Inference mode")
     parser.add_argument('--mode', choices=['base_image', 'history_image', 'base_text', 'history_text'], default='base_image',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
-    parser.add_argument('--model_name', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='claude35',
+    parser.add_argument('--model-name', choices=['qwen_vl_chat', 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'], default='claude35',
                         help='Inference mode: base_image (default), history_image, base_text, or history_text')
-    parser.add_argument('--use_system_prompt', default=False,
+    parser.add_argument('--use-system-prompt', default=False,
                         help='Whether use system prompt for closed source models')
     parser.add_argument('--temperature', default=0,
                         help='The hyperparameter of generation')
+    parser.add_argument('--processes-nums', type=int, default=4,
+                        help='Number of processes to use for parallel inference.')
     args = parser.parse_args()
     
     # for model_name in MODELS:
@@ -218,16 +222,17 @@ def main():
     for game in GAMES:
         levels = load_levels(game["levels_path"])
         if args.mode == 'base_image':
-            inference(args, game, inferencer, levels, use_history=False, use_text=False)
+            inference(args, game, inferencer, levels, use_history=False, use_text=False, processes_nums=args.processes_nums)
         elif args.mode == 'history_image':
-            inference(args, game, inferencer, levels, use_history=True, use_text=False)
+            inference(args, game, inferencer, levels, use_history=True, use_text=False, processes_nums=args.processes_nums)
         elif args.mode == 'base_text':
-            inference(args, game, inferencer, levels, use_history=False, use_text=True)
+            inference(args, game, inferencer, levels, use_history=False, use_text=True, processes_nums=args.processes_nums)
         elif args.mode == 'history_text':
-            inference(args, game, inferencer, levels, use_history=True, use_text=True)
+            inference(args, game, inferencer, levels, use_history=True, use_text=True, processes_nums=args.processes_nums)
     
     inferencer.cleanup()
 
+    generate_score()
     summarize()  # also compute one-step
 
 if __name__ == "__main__":

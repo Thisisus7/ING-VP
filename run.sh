@@ -1,41 +1,33 @@
 #!/bin/bash
-LOG_DIR="logs"
-mkdir -p "$LOG_DIR"
-MODEL="gpt4v" # 'gpt4o', 'claude35', 'gpt4v', 'qwen_vl_max', 'gemini_15_pro', 'blip2'
 
-MODES=("history_image")
-# MODES=("base_image" "history_image" "base_text" "history_text")
+# Define the model name
+MODEL_NAME="gpt4o"
 
+# Define the command to execute your Python scripts
+PYTHON_CMD_1="python src/multi_step/infer.py"  # Multi-step script
+PYTHON_CMD_2="python src/one_step/infer.py"  # Single-step script
+PYTHON_CMD_3="python src/summary.py"  # Evaluation script
 
-for MODE in "${MODES[@]}"; do
-    OUTPUT_IMAGE_BASE_DIR="outputs/multi_step/image_text/base"
-    OUTPUT_IMAGE_HIS_DIR="outputs/multi_step/image_text/history"
-    OUTPUT_TEXT_BASE_DIR="outputs/multi_step/text_only/base"
-    OUTPUT_TEXT_HIS_DIR="outputs/multi_step/text_only/history"
+# Execute the multi-step commands simultaneously
+$PYTHON_CMD_1 --mode base_image --model-name "$MODEL_NAME" --use-system-prompt True --temperature 0 --processes-nums 4 &
+$PYTHON_CMD_1 --mode history_image --model-name "$MODEL_NAME" --use-system-prompt True --temperature 0 --processes-nums 4 &
+$PYTHON_CMD_1 --mode base_text --model-name "$MODEL_NAME" --use-system-prompt True --temperature 0 --processes-nums 4 &
+$PYTHON_CMD_1 --mode history_text --model-name "$MODEL_NAME" --use-system-prompt True --temperature 0 --processes-nums 4 &
 
-    if [[ "$MODE" == "base_image" ]]; then
-        OUTPUT_DIR="$OUTPUT_IMAGE_BASE_DIR"
-        USE_HISTORY=false
-        USE_TEXT=false
-    elif [[ "$MODE" == "history_image" ]]; then
-        OUTPUT_DIR="$OUTPUT_IMAGE_HIS_DIR"
-        USE_HISTORY=true
-        USE_TEXT=false
-    elif [[ "$MODE" == "base_text" ]]; then
-        OUTPUT_DIR="$OUTPUT_TEXT_BASE_DIR"
-        USE_HISTORY=false
-        USE_TEXT=true
-    elif [[ "$MODE" == "history_text" ]]; then
-        OUTPUT_DIR="$OUTPUT_TEXT_HIS_DIR"
-        USE_HISTORY=true
-        USE_TEXT=true
-    else
-        echo "无效的 mode: $MODE"
-        exit 1
-    fi
+# Wait for all multi-step background processes to finish
+wait
 
-    mkdir -p "$OUTPUT_DIR/$LOG_DIR"
-    LOG_FILE="$OUTPUT_DIR/$LOG_DIR/${MODE}_${MODEL}.log"
-    
-    python3 src/main.py --mode "$MODE" --model "$MODEL" > "$LOG_FILE" 2>&1
-done
+echo "All multi-step modes executed simultaneously."
+
+# Execute the single-step commands simultaneously
+$PYTHON_CMD_2 --mode image --model-name "$MODEL_NAME" --processes-nums 4 &
+$PYTHON_CMD_2 --mode text --model-name "$MODEL_NAME" --processes-nums 4 &
+
+# Wait for all single-step background processes to finish
+wait
+
+echo "All single-step modes executed simultaneously."
+
+$PYTHON_CMD_3
+
+echo "The evalution is complete!"

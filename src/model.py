@@ -4,6 +4,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, Blip2Processor, Bl
 from PIL import Image
 from abc import ABC, abstractmethod
 from openai import OpenAI
+import google.generativeai as genai
 
 class ModelInferencer(ABC):
     
@@ -61,11 +62,18 @@ class APIInferencer(ABC):
     def infer(self, prompt: str, image_path: str) -> str:
         pass
 
+    # def load_client(self):
+    #     return OpenAI(
+    #         api_key='xxxx',
+    #         base_url="xxxx",
+    #     )
+
     def load_client(self):
         return OpenAI(
-            api_key='xxxx',
-            base_url="xxxx",
+            api_key='09c9021c0811db8d65c8bd9dd1df7341',
+            base_url="https://idealab.alibaba-inc.com/api/openai/v1",
         )
+
 
     def cleanup(self):
         if hasattr(self, 'client'):
@@ -123,20 +131,11 @@ class GPT4oInferencer(APIInferencer):
     def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
         response = self.get_correct_response('gpt-4o-0513', system_prompt, prompt, image_path, temperature)
         return response
-    
-class Claude35Inferencer(APIInferencer):
-    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
-        response = self.get_correct_response('claude35_sonnet', system_prompt, prompt, image_path, temperature)
-        return response
+
 
 class GPT4VInference(APIInferencer):
     def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
         response = self.get_correct_response('gpt-4-vision-preview', system_prompt, prompt, image_path, temperature)
-        return response
-
-class Gemini15ProInference(APIInferencer):
-    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
-        response = self.get_correct_response('gemini-1.5-pro', system_prompt, prompt, image_path, temperature)
         return response
 
 class GPT4TurboInference(APIInferencer):
@@ -149,23 +148,55 @@ class GPT4TurboInference(APIInferencer):
         response = self.get_correct_response('claude3_opus', system_prompt, prompt, image_path, temperature)
         return response
 
-class Claude3OpusInference(APIInferencer):
-    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
-        response = self.get_correct_response('claude3_opus', system_prompt, prompt, image_path, temperature)
-        return response
 
-class Qwen2_72BInference(APIInferencer):
-    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
-        response = self.get_correct_response('qwen2-72b-instruct', system_prompt, prompt, image_path, temperature)
-        return response
+class GeminiInferencer(APIInferencer):
+    MAX_RETRIES = 10
 
-class LLaMA3_72BInference(APIInferencer):
-    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
-        response = self.get_correct_response('llama3', system_prompt, prompt, image_path, temperature)
-        return response
+    def load_model(self):
+        """Load the model with the given API key."""
+        genai.configure(api_key="xxx")
     
-class QwenVLMaxInference(APIInferencer):
-    def infer(self, system_prompt: str, prompt: str, image_path: str, temperature: float) -> str:
-        response = self.get_correct_response('qwen-vl-max', system_prompt, prompt, image_path, temperature)
-        return response
+    def infer(self, prompt: str, image_path: str = None, audio_file_path: str = None, temperature: float = 0.0) -> str:
+        """Infer response using the model, with optional image and audio input."""
+        input_list = [prompt]
+        
+        # Upload the image if provided
+        if image_path:
+            image_file = genai.upload_file(path=image_path)
+            input_list.append(image_file)
+        
+        # Upload the audio if provided
+        if audio_file_path:
+            audio_file = genai.upload_file(path=audio_file_path)
+            input_list.append(audio_file)
 
+        for attempt in range(self.MAX_RETRIES):
+            try:
+                response = genai.GenerativeModel(model_name="gemini-1.5-pro").generate_content(
+                    input_list,
+                    generation_config=genai.types.GenerationConfig(
+                        temperature=temperature,
+                    ),
+                ).text
+                
+                if response:
+                    return response
+            
+            except Exception as e:
+                print(f"Error occurred: {e}")
+        
+        # If all attempts fail, return an empty string
+        return ""
+        
+
+    def encode_image_to_base64(self, image_path: str) -> str:
+        """Encode the specified image to a base64 string."""
+        with Image.open(image_path) as img:
+            # Resize the image to not exceed 1024x1024
+            max_size = (1024, 1024)
+            img.thumbnail(max_size)
+
+            img_byte_arr = io.BytesIO()
+            img.save(img_byte_arr, format='png', quality=85)  # Use PNG with specified quality
+            img_byte_arr = img_byte_arr.getvalue()
+            return base64.b64encode(img_byte_arr).decode('utf-8')

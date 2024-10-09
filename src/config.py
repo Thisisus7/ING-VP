@@ -68,18 +68,6 @@ GAMES = [
     },
 ]
 
-# MODELS = ["blip2", "qwen_vl_chat"]
-# MODELS = ["qwen_vl_chat"]
-# MODELS = ["gpt4o", "claude35"]
-# MODELS = ["gpt4o", "claude35"]
-# MODELS = ["gemini_15_pro", "gpt4o", "claude35", "gpt4v"]
-# MODELS = ["gpt4o", "claude35", "gpt4v"]
-# MODELS = ["gemini_15_pro"]
-# MODELS = ["gpt4o"]
-# MODELS = ["claude35"]
-# MODELS = ["gpt4v"]
-# MODELS = ["qwen_vl_max"]
-MODELS = ["blip2"]
 # Configuration for inference levels and output directory
 START_LEVEL = 1
 END_LEVEL = 50
@@ -92,7 +80,7 @@ USER_SUFFIX=''
 OUTPUT_OS_DIR = "outputs/one_step/image_text"
 OUTPUT_TEXT_OS_DIR = "outputs/one_step/text_only"
 # multi step
-OUTPUT_IMAGE_BASE_DIR = "outputs_mp/multi_step/image_text/base"
-OUTPUT_IMAGE_HIS_DIR = "outputs_mp/multi_step/image_text/history"
-OUTPUT_TEXT_BASE_DIR = "outputs_mp/multi_step/text_only/base"
-OUTPUT_TEXT_HIS_DIR = "outputs_mp/multi_step/text_only/history"
+OUTPUT_IMAGE_BASE_DIR = "outputs/multi_step/image_text/base"
+OUTPUT_IMAGE_HIS_DIR = "outputs/multi_step/image_text/history"
+OUTPUT_TEXT_BASE_DIR = "outputs/multi_step/text_only/base"
+OUTPUT_TEXT_HIS_DIR = "outputs/multi_step/text_only/history"
