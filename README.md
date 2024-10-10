@@ -4,7 +4,7 @@
   <img src="image1.png" alt="introduction">
 </p>
 
-This repository includes the evaluation code for the corresponding paper"[ING-VP: MLLMs cannot Play Easy Vision-based Games Yet]()"
+This repository includes the evaluation code for the corresponding paper"[ING-VP: MLLMs cannot Play Easy Vision-based Games Yet](https://arxiv.org/abs/2410.06555)"
 
 ## Overview
 
@@ -53,5 +53,13 @@ python ./src/summary.py
 ## Citation
 
 ```bibtex
-
+@misc{zhang2024ingvpmllmsplayeasy,
+      title={ING-VP: MLLMs cannot Play Easy Vision-based Games Yet}, 
+      author={Haoran Zhang and Hangyu Guo and Shuyue Guo and Meng Cao and Wenhao Huang and Jiaheng Liu and Ge Zhang},
+      year={2024},
+      eprint={2410.06555},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2410.06555}, 
+}
 ```
