@@ -1,0 +1,8 @@
+The coordinate of the existing queens (including the first queen):
+
+{text_representation_path}
+
+    1. first number: row index, range from 0 to 7
+    2. second number: column index, range from 0 to 7
+
+Please output only one step based on given coordinate and your output must meet required format {"output": [row, col]}. And do not output anything else.

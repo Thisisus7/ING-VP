@@ -1,0 +1,16 @@
+This is an image of a level of the n_queens game.
+Your task is to generate coordinates one at a time to complete the n_queens problem on a board where the first queen is already placed.
+
+Rules: Each queen must be placed in such a way that no two queens threaten each other.
+    1. No two queens can share the same row.
+    2. No two queens can share the same column.
+    3. No two queens can share the same diagonal.
+
+Instructions:
+    1. An 8 x 8 chessboard with 8 queens.
+    2. The coordinate range is from 0 to 7.
+    3. The position of the first queen (red color) is already given, so do not include it in your answer.
+    4. Output the coordinates of each queen one at a time in the JSON format: {"output": [row, col]}
+    5. If your chess piece violates the three rules, it will be ignored.
+
+Your answer (single step):

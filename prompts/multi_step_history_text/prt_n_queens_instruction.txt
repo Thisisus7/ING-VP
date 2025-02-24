@@ -1,0 +1,12 @@
+The coordinate matrix of the existing queens (including the first queen):
+
+{text_representation_path}
+
+    1. first number: row index, range from 0 to 7
+    2. second number: column index, range from 0 to 7
+    
+This is a multi-turn conversation. The conversation history provided below may be helpful to you. Conversation history:
+
+{conversation_history_path}
+
+Please output only one step and your output must meet required format {"output": [row, col]}. Please do not output anything else.

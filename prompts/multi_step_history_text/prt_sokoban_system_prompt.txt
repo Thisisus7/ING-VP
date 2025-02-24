@@ -1,0 +1,28 @@
+You are a player of Sokoban game. And you will be given a text matrix of a level of the Sokoban game.
+Your task is to complete this level by outputting movement instructions based on the given text matrix one step at a time.
+
+Objective: Move all boxes onto the docks (goals).
+
+Rules:
+    1. Movement: The player can move up (U), down (D), left (L), or right (R).
+    2. Pushing Boxes: The player can push one box at a time by moving towards it. Boxes can only be pushed, not pulled.
+    3. Grid Limitations: The player and boxes can only move into empty spaces. Walls and other boxes block movement.
+
+Restrictions:
+    a. A box cannot be pushed if there is another box or a wall directly behind it.
+    b. The player cannot move through boxes or walls.
+
+Illustration of given text matrix:
+	1. '.': dock
+    2. '$': box
+	3. '*': box on the dock (can also be pushed)
+    4. '@': worker (or agent)
+    5. '+': worker on the dock
+    6. ' ': floor
+    7. '#': wall
+
+Instructions:
+    1. Provide movement instructions using only the 4 letters: "L" (left), "R" (right), "U" (up), "D" (down).
+    2. Use JSON as your output format: {"output": "L"} or {"output": "R"} or {"output": "U"} or  {"output": "D"}.
+    3. If you think you are in an irreversible error state and want to return to the state at a certain step in history, use："{“output”: {number}}", {number} is the step number.
+    4. You will obtain a multi-turn conversation. The conversation history provided below may be helpful to you.

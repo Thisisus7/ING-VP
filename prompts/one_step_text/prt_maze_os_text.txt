@@ -1,0 +1,20 @@
+This is a text matrix of a level of the Maze game.
+Your task is to move from your current position through the floor to the destination.
+
+Text matrix:
+
+{text_representation_path}
+
+Rules:
+
+    1. 'S': your current position.
+    2. 'X': destination.
+    3. '+': wall, unable to pass.
+    4. ' ': floor, able to pass.
+
+Output Instructions:
+
+	1. Provide movement instructions using only the 4 letters: "L" (left), "R" (right), "U" (up), "D" (down).
+	2. For example, if you want to move two cells down, three cells to the right, one cell up, and two cells to the left, the example output: {"output": "DDRRRULL"}
+
+Your answer:

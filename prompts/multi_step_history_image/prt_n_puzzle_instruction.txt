@@ -1,0 +1,6 @@
+This is a multi-turn conversation. The conversation history provided below may be helpful to you.
+
+Conversation history:
+    {conversation_history_path}
+
+Please output only one step, and your output must be one of the following: {"output": "L"} or {"output": "R"} or {"output": "U"} or {"output": "D"}. And do not output anything else.

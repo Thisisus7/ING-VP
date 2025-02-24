@@ -1,0 +1,16 @@
+This is an image of a level of the Maze game.
+Your task is to move from your current position through the floor to the destination
+
+Rules: 
+ 
+	1. red area: your current position
+	2. green area: destination
+	3. black area: wall, unable to pass
+	4. white area: floor, able to pass
+
+Output Instructions:
+
+	1. Provide movement instructions using only the 4 letters: "L" (left), "R" (right), "U" (up), "D" (down).
+	2. For example, if you want to move two cells down, three cells to the right, one cell up, and two cells to the left, the example output: {"output": "DDRRRULL"}
+
+Your answer:

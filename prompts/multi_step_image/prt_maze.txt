@@ -1,0 +1,16 @@
+This is an image of a level of the Maze game.
+Your task is to move from your current position through the floor to the destination.
+
+Rules:
+
+    1. Red area: your current position.
+    2. Green area: destination.
+    3. Black area: wall, unable to pass.
+    4. White area: floor, able to pass.
+
+Output Instructions:
+    1. Provide movement instructions using only the 4 letters: "L" (left), "R" (right), "U" (up), "D" (down).
+    2. Use JSON as your output format: {"output": "L"} or {"output": "R"} or {"output": "U"} or  {"output": "D"}.
+    3. Output only one move at a time, wait for confirmation before proceeding to the next step.
+
+Your answer (single step):

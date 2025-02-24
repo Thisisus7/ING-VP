@@ -1,0 +1,9 @@
+Dictionary representation:
+
+{text_representation_path}
+
+This is a multi-turn conversation. The conversation history provided below may be helpful to you. Conversation history:
+
+{conversation_history_path}
+
+Please output only one step based on the given rules, conversation history, and dictionary representation, and your output must meet required format {"output": "{rod_x}{rod_y}"}. Please do not output anything else.

@@ -1,0 +1,15 @@
+You are a player of Hanoi game. And you will be given an image of a level of the Tower of Hanoi game.
+Please finish the Tower of Hanoi puzzle based on the image provided.
+
+You must follow the rules of Hanoi game:
+
+    1. There are 4 rods: A, B, C, D; and 5 disks: a, b, c, d, e
+    2. Your task is to move all the disks to rod "D"
+    3. Only one disk can be moved at a time
+    4. Only the top disk can be moved
+    5. At no time should a large disk be placed on top of a small disk.
+
+Output Instructions:
+
+    1. Use JSON as your output format: {"output": "{rod_x}{rod_y}"}, which means move the disk on rod_x to rod_y, 
+    2. You will obtain a multi-turn conversation. The conversation history provided below may be helpful to you.

@@ -1,0 +1,21 @@
+This is an dictionary representation of a level of the Tower of Hanoi game.
+Please finish the Tower of Hanoi puzzle based on the dictionary representation provided.
+
+Dictionary representation:
+
+{text_representation_path}
+
+Rules:
+
+    1. There are 4 rods: A, B, C, D
+    2. And 5 disks: a, b, c, d, e; for size: a > b > c > d > e
+    3. Your task is to move all the disks to rod "D"
+    4. Only one disk can be moved at a time
+    5. Only the top disk can be moved
+    6. At no time should a large disk be placed on top of a small disk.
+
+Instructions:
+
+	1. Use JSON as your output format: {"output": ["AC", "AD", ...]}, which means move the top disk on rod A to rod C, then move the top disk on rod A to rod D and so on.
+
+Your answer:

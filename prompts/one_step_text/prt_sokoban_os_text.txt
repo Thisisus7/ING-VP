@@ -1,0 +1,32 @@
+This is a text matrix of a level of the Sokoban game.
+Your task is to complete this level by outputting movement instructions based on this text matrix.
+
+Text matrix:
+
+{text_representation_path}
+
+Objective: Move all boxes onto the docks (goals).
+
+Rules:
+    1. Movement: The player can move up (U), down (D), left (L), or right (R).
+    2. Pushing Boxes: The player can push one box at a time by moving towards it. Boxes can only be pushed, not pulled.
+    3. Grid Limitations: The player and boxes can only move into empty spaces. Walls and other boxes block movement.
+
+Restrictions:
+    a. A box cannot be pushed if there is another box or a wall directly behind it.
+    b. The player cannot move through boxes or walls.
+
+Illustration:
+	1. '.': dock
+    2. '$': box
+	3. '*': box on the dock (can also be pushed)
+    4. '@': worker (or agent)
+    5. '+': worker on the dock
+    6. ' ': floor
+    7. '#': wall
+
+Instructions:
+	1. Provide movement instructions using only the 4 letters: "L" (left), "R" (right), "U" (up), "D" (down).
+	2. For example, if you want to move two cells down, three cells to the right, one cell up, and two cells to the left, the example output: {"output": "DDRRRULL"}
+
+Your answer:

@@ -1,0 +1,1 @@
+Please output only one step and your output must meet required format {"output": [row, col]}.  And do not output anything else.

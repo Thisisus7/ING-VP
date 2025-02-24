@@ -1,0 +1,9 @@
+Text matrix:
+
+{text_representation_path}
+
+This is a multi-turn conversation. The conversation history provided below may be helpful to you. Conversation history:
+
+{conversation_history_path}
+
+Please output only one step based on given number string and your output must meet required format {"output": {"{row}{column}": {number}}}. And do not output anything else:

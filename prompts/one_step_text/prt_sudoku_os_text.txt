@@ -1,0 +1,23 @@
+This is a number string of a level of the Sudoku game.
+Please finish the sudoku puzzle based on the number string provided.
+
+Number string:
+
+{text_representation_path}
+
+Illustration:
+
+    1. This string contains 81 numbers in total, ranges from 0 to 9.
+    2. 0 represents a blank, you need to fill in the blank with a suitable number, ranges from 1 to 9.
+    3. the first number is the top left number, the last number is the bottom right number.
+
+Rules:
+    1. In sudoku, each row, column, and 3x3 grid must contain all the digits from 1 to 9 exactly once without repeating.
+    2. You need to determine the number to fill in the blank based on the existing numbers.
+
+instructions:
+    1. The top left number is at row 0, column 0; the bottom right number is at row 8, column 8.
+    2. Use JSON as your output format: {"output": {"{row}{column}": {number}, "{row}{column}": {number}, ...}}.
+    3. The range of {row} and {column} are 0-8, the range of {number} is 1-9. 
+
+Your answer:

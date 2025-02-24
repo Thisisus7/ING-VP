@@ -1,0 +1,7 @@
+openai==1.51.2
+Pillow==9.4.0
+Pillow==10.4.0
+protobuf==5.28.2
+pygame==2.6.1
+torch==2.1.2
+transformers==4.29.2
